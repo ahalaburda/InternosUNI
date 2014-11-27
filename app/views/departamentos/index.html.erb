@@ -1,0 +1,23 @@
+<div class="container">
+<h1>Departamentos</h1>
+
+<table class="table table-hover">
+  <tr class="active">  
+    <th>Nombre</th>
+    <th>Interno</th>
+  </tr>
+
+<% @departamentos.each do |departamento| %>
+  <tr>
+    <td><%= departamento.nombre %></td>
+    <td><%= departamento.interno %></td>
+    <td><%= link_to 'Show', departamento %></td>
+    <td><%= link_to 'Edit', edit_departamento_path(departamento) %></td>
+    <td><%= link_to 'Destroy', departamento, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+  </tr>
+<% end %>
+</table>
+</div>
+<br />
+
+<!-- <%= link_to 'New Departamento', new_departamento_path %> -->

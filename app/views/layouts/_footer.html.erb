@@ -1,0 +1,10 @@
+<div id="footer-wrapper">
+      <div id="footer" class="container">
+      	<p>Departamento de Tecnología e Informática</p>
+        <p>Copyright © 2014 Universidad Nacional de Itapúa. </p>
+        <% ulima_actualizacion = @last.updated_at %>
+
+		<% ulima_actualizacion_formateado  = ulima_actualizacion.strftime("%d-%m-%Y") %>
+        <p>Ultima actualización: <%= ulima_actualizacion_formateado %> </p>
+      </div>
+</div>

@@ -1,0 +1,45 @@
+</br>
+</br>
+</br>
+</br>
+<div class="container">
+  <p id="notice"><%= notice %></p>
+  <div class= "col-xs-4 col-sm-4">
+      <div class="well">
+        <p class="funcionario">
+          <b>Nombre:</b>
+          <%= @funcionario.nombre %>
+        </p>
+
+        <p class="funcionario">
+          <b>Apellido:</b>
+          <%= @funcionario.apellido %>
+        </p>
+
+        <p class="funcionario">
+          <b>Cargo:</b>
+          <%= @funcionario.cargo %>
+        </p>
+
+        <p class="funcionario">
+          <b>Interno:</b>
+          <%= @funcionario.interno %>
+        </p>
+
+        <p class="funcionario">
+          <b>Correo:</b>
+          <%= @funcionario.correo %>
+        </p>
+
+        <p class="funcionario">
+          <b>Cumpleaño:</b>
+          <%= @funcionario.cumpleanio %>
+          </p>
+
+        <%= link_to 'Editar', edit_funcionario_path(@funcionario) %> | 
+
+        <%= link_to 'ir atras', funcionarios_path %>
+
+    </div>
+  </div>
+</div>

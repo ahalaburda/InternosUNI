@@ -1,0 +1,45 @@
+<%= form_for(@funcionario) do |f| %>
+  <% if @funcionario.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@funcionario.errors.count, "error") %> prohibited this funcionario from being saved:</h2>
+
+      <ul>
+      <% @funcionario.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :nombre %><br />
+    <%= f.text_field :nombre %>
+  </div>
+  <div class="field">
+    <%= f.label :apellido %><br />
+    <%= f.text_field :apellido %>
+  </div>
+  <div class="field">
+    <%= f.label :cargo %><br />
+    <%= f.text_field :cargo %>
+  </div>
+  <div class="field">
+    <%= f.label :departamento_id %><br />
+    <%= f.number_field :departamento_id %>
+  </div>
+  <div class="field">
+    <%= f.label :interno %><br />
+    <%= f.number_field :interno %>
+  </div>
+  <div class="field">
+    <%= f.label :correo %><br />
+    <%= f.text_field :correo %>
+  </div>
+  <div class="field">
+    <%= f.label :cumpleanio %><br />
+    <%= f.date_select :cumpleanio,:start_year => 1920 %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

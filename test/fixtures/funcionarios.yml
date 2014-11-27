@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  nombre: MyString
+  apellido: MyString
+  cargo: MyString
+  departamento_id: 1
+  interno: 1
+  correo: MyString
+  cumpleanio: 2014-03-24
+
+two:
+  nombre: MyString
+  apellido: MyString
+  cargo: MyString
+  departamento_id: 1
+  interno: 1
+  correo: MyString
+  cumpleanio: 2014-03-24
