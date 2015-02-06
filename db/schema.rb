@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140910135334) do
+ActiveRecord::Schema.define(:version => 20150115152420) do
 
   create_table "ahoy_events", :force => true do |t|
     t.uuid     "visit_id"
@@ -21,7 +21,6 @@ ActiveRecord::Schema.define(:version => 20140910135334) do
     t.datetime "time"
   end
 
-  add_index "ahoy_events", ["id"], :name => "sqlite_autoindex_ahoy_events_1", :unique => true
   add_index "ahoy_events", ["time"], :name => "index_ahoy_events_on_time"
   add_index "ahoy_events", ["user_id"], :name => "index_ahoy_events_on_user_id"
   add_index "ahoy_events", ["visit_id"], :name => "index_ahoy_events_on_visit_id"
@@ -68,7 +67,6 @@ ActiveRecord::Schema.define(:version => 20140910135334) do
     t.datetime "started_at"
   end
 
-  add_index "visits", ["id"], :name => "sqlite_autoindex_visits_1", :unique => true
   add_index "visits", ["user_id"], :name => "index_visits_on_user_id"
 
 end

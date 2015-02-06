@@ -19,52 +19,54 @@
 
 $(document).ready(function() {
 	// hide It
-	 $("[id*=table_]").hide();
-	 $('#table_101').show();
 
-	 $('#my-affix').affix({
-    offset: {
- 
-    bottom: function () {
-        return (this.bottom = $('#footer').outerHeight(true))
-      }
-    }
-  })
-
+	$("[id*=table_]").hide();
+	$('#table_101').show();
+	$('#my-affix').affix({
+		offset: {
+			bottom: function () {
+				return (this.bottom = $('#footer').outerHeight(true))
+			}
+		}
+	})
 });
+
 function desplegar(interno){
 	$("[id*=table_]").hide();
 		$('#table_'+interno).fadeToggle();
 };
+function myFunction() {
+    alert("You pressed a key inside the input field");
+    console.log("se va por ahi");
+};
 function irA (interno) {
 	var p = $( "#columna1_"+interno );
- 	var offset = p.offset();
- 	var posX = offset.top;
- 	console.log("position "+posX);
- 	var position = 0;
- 	var position = posX - 150;
- 	console.log("position "+position);
-	 $("html, body").scrollTop(position);
+	var offset = p.offset();
+	var posX = offset.top;
+	var position = 0;
+	var position = posX - 150;
+	$("html, body").scrollTop(position);
 	desplegar(interno);
+	console.log("se va por ahi");
 };
 // http://stackoverflow.com/questions/22821770/typeahead-js-template-settings-ignored
 $(document).ready(function() {
 	var sugerencia_funcionarios = new Bloodhound({
-		    datumTokenizer: function(d) {
-		        return Bloodhound.tokenizers.whitespace(d.nombre);
-		    },queryTokenizer: Bloodhound.tokenizers.whitespace,
-		    limit: 6,
-		    remote: '/funcionarios?value=%QUERY'
+		datumTokenizer: function(d) {
+			return Bloodhound.tokenizers.whitespace(d.nombre);
+		},queryTokenizer: Bloodhound.tokenizers.whitespace,
+		limit: 6,
+		remote: '/funcionarios?value=%QUERY'
 	});
 	var sugerencia_departamentos = new Bloodhound({
-		    datumTokenizer: function(d) {
-		        return Bloodhound.tokenizers.whitespace(d.nombre);
-		    },queryTokenizer: Bloodhound.tokenizers.whitespace,
-		    limit: 6,
-		    remote: '/departamentos?value=%QUERY'
+		datumTokenizer: function(d) {
+			return Bloodhound.tokenizers.whitespace(d.nombre);
+		},queryTokenizer: Bloodhound.tokenizers.whitespace,
+		limit: 6,
+	remote: '/departamentos?value=%QUERY'
 	});
 	sugerencia_funcionarios.initialize();
-    sugerencia_departamentos.initialize();
+	sugerencia_departamentos.initialize();
 
 	$('#the-basics .typeahead').typeahead({
 		hint: true,
@@ -72,18 +74,19 @@ $(document).ready(function() {
 		minLength: 1
 	},
 	{
-	    name: 'sugerencia-funcionarios',
-	    displayKey: 'value',
-	    source: sugerencia_funcionarios.ttAdapter(),
+		name: 'sugerencia-funcionarios',
+		displayKey: 'value',
+		source: sugerencia_funcionarios.ttAdapter(),
 		templates: {
-		  	 header: '<h3 class="funcionarios-list">Funcionario</h3>',
-		     empty: [
-		      '<div class="empty-message">',
-		      'ninguna coincidencia :(',
-		      '</div>'
+			header: '<h3 class="funcionarios-list">Funcionario</h3>',
+			empty: [
+				'<div class="empty-message">',
+				'ninguna coincidencia :(',
+				'</div>'
 		    ].join('\n'),
 		    suggestion: function(data){
-		      return '<p onclick="irA('+data.interno+')" style="cursor:pointer" >' + data.nombre +' '+data.apellido +' - ' + data.interno + '</p>';
+
+		      return '<p onselect="myFunction()" onclick="irA('+data.interno+')" style="cursor:pointer" >' + data.nombre +' '+data.apellido +' - ' + data.interno + '</p>';
 		    }
 		}
 	},
@@ -99,9 +102,8 @@ $(document).ready(function() {
 		      '</div>'
 		    ].join('\n'),
 		    suggestion: function(data){
-		      return '<p onclick="irA('+data.interno+')" style="cursor:pointer" >' + data.nombre +' - ' + data.interno + '</p>';
+		      return '<p onkeydown="myFunction()" onclick="irA('+data.interno+')" style="cursor:pointer" >' + data.nombre +' - ' + data.interno + '</p>';
 		    }
 		}
 	});
 });
-

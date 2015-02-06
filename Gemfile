@@ -5,7 +5,8 @@ gem 'rails', '3.2.14'
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-gem 'sqlite3'
+# gem 'sqlite3'
+gem 'mysql2'
 
 
 # Gems used only for assets and not required
@@ -22,9 +23,8 @@ gem 'bootstrap-sass', '~> 3.1.1'
 gem 'jquery-ui-rails'
 gem 'jquery-rails'
 gem 'foreigner'
-# gem "ransack"
-# gem "birthday"
 # gem 'bootstrap-datepicker-rails'
+
 gem 'twitter-typeahead-rails', :git => "git://github.com/yourabi/twitter-typeahead-rails.git"
 gem 'ahoy_matey'
 gem 'activeuuid', '>= 0.5.0'
