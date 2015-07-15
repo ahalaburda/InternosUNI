@@ -1,10 +1,23 @@
 class Departamento < ActiveRecord::Base
-  attr_accessible :interno, :nombre
-  has_many :funcionario
+	attr_accessible :interno, :nombre
+	has_many :funcionario
 
-   def self.search(value)
+	validates :interno,
+		:format => {
+		with: /\A[0-9]+\z/,
+		message: 'solo permite numeros'},
+
+	:length => {
+			:maximum => 3,
+			:too_long => 'debe tener como maximo %{count} caracteres'}
+
+
+
+	def self.search(value)
 		Departamento.where("nombre LIKE ? OR interno LIKE ?", "%#{value}%", "%#{value}%")
-		# Departamento.joins(:funcionario).where("departamentos.nombre like ? OR departamentos.interno like ? OR funcionarios.nombre like ? OR funcionarios.apellido like ?","%#{value}%", "%#{value}%", "%#{value}%", "%#{value}%")
+	end
 
+	def name_with_initial
+		"#{nombre}"
 	end
 end

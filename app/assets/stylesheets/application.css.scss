@@ -11,32 +11,34 @@
  *= require_self
  *= require_treett
  */
-
 @import "bootstrap";
 
 @media (min-width: 979px) {
-	.navbar-form.navbar-right:last-child {
-		margin-right: 75px;
-	}
-}
-
-@media (max-width: 978px) {
-	.navbar-form.navbar-right:last-child {
-		margin-right: -15px;
-	}
-		#the-basics {
-			position: relative;
-			vertical-align: top;
-			width: 200px !important;
+	#the-basics {
+		position: relative;
+		vertical-align: top;
+		width: 262px !important;
 	}
 	.navbar-form .form-control {
 		display: inline-block;
 		width: inherit !important;
-		
-		}
+	}
 }
-
-//cabezera
+@media (max-width: 978px) {
+	.navbar-form.navbar-right:last-child {
+		margin-right: -15px;
+	}
+	#the-basics {
+		position: relative;
+		vertical-align: top;
+		width: 200px !important;
+	}
+	.navbar-form .form-control {
+		display: inline-block;
+		width: inherit !important;
+	}
+}
+////////////////////////////////////////cabezera
 .header img {
 	float: left;
 	width: 30px;
@@ -46,15 +48,56 @@
 .navbar > .container .navbar-brand {
 	margin-left: 0px;
 }
-
 .navbar-inverse {
 	background-color: #2C3E50;
 	border-color: #2C3E50;	
 }
+////////////////////////////////////// form
 .form-control {
 	border-radius: 0px;
 }
-	//FORM BUSCAR
+#form-funcionarios{
+	.form-control {
+		border-left: 0px;
+		border-top: 0px;
+		border-right: 0px;
+		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+		-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+		box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+	}
+	.form-control:focus {
+		border-color: #66afe9;
+		border-bottom: 2px solid #66AFE9;
+		outline: 0;
+	}
+}
+#funcionario_cumpleanio_3i,
+#funcionario_cumpleanio_2i,
+#funcionario_cumpleanio_1i {
+		height: 34px;
+		border-radius: 0px;
+		background-color: #fff;
+		background-image: none;
+		border-left: 0px;
+		border-top: 0px;
+		border-right: 0px;
+		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+}
+#funcionario_cumpleanio_3i:focus,
+#funcionario_cumpleanio_2i:focus,
+#funcionario_cumpleanio_1i:focus{
+		border-color: #66afe9;
+		border-bottom: 2px solid #66AFE9;
+		outline: 0;	
+}
+.help-inline {
+  display: inline;
+  text-transform: uppercase;
+  color: #D00;
+  padding-left: 5px;
+  font-size: 12px;
+}
+////////////////////////////////////////FORM BUSCAR
 #the-basics input {
 	background-image: url('/icon-search.png');
 	background-position: 10px center;
@@ -69,7 +112,7 @@
 	background-position: -20px center;
 	text-indent: 0;
 }
-//sidebar cumpleaños
+/////////////////////////////////sidebar cumpleaños
 .list-group-item:first-child {
 	border-top-right-radius: 0px;
 	border-top-left-radius: 0px;
@@ -93,7 +136,8 @@ a.list-group-item:hover, a.list-group-item:focus {
 	text-decoration: none;
 	background-color: white;
 }
-//botones
+
+////////////////////////////////////////////////botones
 .btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active {
 	color: white;
 	background-color: #3498DB;
@@ -115,7 +159,107 @@ a.list-group-item:hover, a.list-group-item:focus {
 	background-color: inherit;
 	border-color: transparent;
 }
-//tablas
+.btn-outline {
+	outline: 0 !important;
+	color: inherit;
+	background-color: transparent;
+	transition: all .5s;
+}
+.btn-print {
+	color: #ffffff;
+	background-color: #39a1f4;
+	border-color: #39a1f4;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	transition: all 0.2s ease-in-out;
+    outline: 0 !important;
+
+}
+.btn-print:hover, .btn-print:focus, .btn-print:active, .btn-print.active, .open>.dropdown-toggle.btn-print {
+	color: #ffffff;
+	background-color: #428bca;
+	border-color: #428bca;
+	transition: all .5s;
+	outline: 0 !important;
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+}
+.btn-circle {
+	width: 30px;
+	height: 30px;
+	padding: 6px 0;
+	border-radius: 15px;
+	text-align: center;
+	font-size: 12px;
+	line-height: 1.428571429;
+	outline: 0 !important;
+}
+.btn-circle.btn-lg {
+	width: 50px;
+	height: 50px;
+	padding: 14px 16px;
+	border-radius: 25px;
+	font-size: 18px;
+	line-height: 1.33;
+	outline: 0 !important;
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+}
+.btn-circle.btn-lg:hover{
+	transition: all .5s;
+	box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
+}
+.glyphicon {
+  top: 2px;
+}
+.hvr-grow-shadow {
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -webkit-transition-property: box-shadow, transform;
+  transition-property: box-shadow, transform;
+}
+.hvr-grow-shadow:hover, .hvr-grow-shadow:focus, .hvr-grow-shadow:active {
+  box-shadow: 0 10px 10px -10px rgba(0, 0, 0, 0.5);
+  -webkit-transform: scale(1.1);
+  transform: scale(1.1);
+}
+///////////////////////// boton ir arriba
+#ir-arriba.affix-top {
+    position: absolute;
+    bottom: -82px;
+    right: 20px;
+}
+#ir-arriba.affix {
+	position: fixed;
+	bottom:20px;
+	right:20px;
+}
+#ir-arriba.btn-primary {
+	color: #428bca;
+	background-color: white;
+ 	border-color: white;
+ 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	transition: all 0.2s ease-in-out;
+}
+#ir-arriba.btn-primary:hover {
+	color: white;
+	background-color: #428bca;
+	border-color: #357ebd;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	transition: all 0.2s ease-in-out;
+}
+@media (max-width: 877px) {
+    #ir-arriba {
+       display: none;
+       visibility: hidden;
+   }
+}
+///////////////////////////////////////tablas
 .table>thead>tr>td.info,
 .table>tbody>tr>td.info,
 .table>tfoot>tr>td.info,
@@ -130,8 +274,8 @@ a.list-group-item:hover, a.list-group-item:focus {
 .table>tfoot>tr.info>th {
 	background-color: #d9edf7;
 }
-//TITULOS y fuentes	
-h1{
+//////////////////////////////////////TITULOS y fuentes	
+h1 {
 	margin-top: 70px;
 }
 h1, h2, h3, h4, h5, h6 {
@@ -141,24 +285,23 @@ h1, h2, h3, h4, h5, h6 {
 p, div {
 	font-family: 'Rambla', sans-serif;
 }
-
 p, ol, ul, td {
 	font-family: 'Rambla', sans-serif !important;
 	font-size: 13px;
 	line-height: 18px;
 }
-.funcionario{
+.funcionario {
 	font-size: 20px;
 }
 //triangulo negro de despliegue
-.caret{
+.caret {
 	margin-right: 6px;
 }
 .caret.caret-reversed {
 	border-top-width: 0;
 	border-bottom: 4px solid #000000;
 }
-//TYPEAHEAD 
+////////////////////////////////////////TYPEAHEAD
 .tt-query {
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 }
@@ -186,21 +329,19 @@ p, ol, ul, td {
 .tt-suggestion p {
 	margin: 0;
 }
-/* Set the fixed height of the footer here */
+
 #push,
 #footer {
 	height: 70px;
 }
-
-/* Lastly, apply responsive CSS fixes as necessary */
 @media (max-width: 767px) {
-#footer {
-	position:absolute;
-	margin-left: -20px;
-	margin-right: -20px;
-	padding-left: 20px;
-	padding-right: 20px;
-}
+	#footer {
+		position:absolute;
+		margin-left: -20px;
+		margin-right: -20px;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
 }
 
 #footer-wrapper {
@@ -212,90 +353,172 @@ p, ol, ul, td {
 	-webkit-box-shadow: inset rgba(0, 0, 0, 0.35) 0 5px 25px;
 	-moz-box-shadow: inset rgba(0, 0, 0, 0.35) 0 5px 25px;
 }
-
 #footer {
-	p{
+	p {
 		color:white;
 		margin: 0 0 0px;
 	}
 	padding-top: 9px;
 	margin-right: auto;
 	margin-left: auto;
-	
 }
 
 .affix {
-  // width: inherit; //helped keep the content the same size on fluid layouts
-  position: fixed;
-  // top: 150px;  //height of the nav
+	position: fixed;
 }
 .affix-bottom {
-
-  // top: auto;
-  bottom: 250px;  //height of the footer
+	bottom: 250px;
 }
 .affix-top {
-  //i didn't need this style but you might
+	//i didn't need this style but you might
 }
-
-
-
-
-//////////////////////////////////////////////////////////////////////
 
 span.twitter-typeahead .tt-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  display: none;
-  float: left;
-  min-width: 160px;
-  padding: 5px 0;
-  margin: 2px 0 0;
-  list-style: none;
-  font-size: 14px;
-  text-align: left;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 0px;
-  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
-  background-clip: padding-box;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 1000;
+	display: none;
+	float: left;
+	min-width: 160px;
+	padding: 5px 0;
+	margin: 2px 0 0;
+	list-style: none;
+	font-size: 14px;
+	text-align: left;
+	background-color: #ffffff;
+	border: 1px solid #cccccc;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 0px;
+	-webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+	background-clip: padding-box;
 }
 span.twitter-typeahead .tt-suggestion > p {
-  display: block;
-  padding: 3px 20px;
-  clear: both;
-  font-weight: normal;
-  line-height: 1.42857143;
-  color: #333333;
-  white-space: nowrap;
+	display: block;
+	padding: 3px 20px;
+	clear: both;
+	font-weight: normal;
+	line-height: 1.42857143;
+	color: #333333;
+	white-space: nowrap;
 }
 span.twitter-typeahead .tt-suggestion > p:hover,
 span.twitter-typeahead .tt-suggestion > p:focus {
-  color: #ffffff;
-  text-decoration: none;
-  outline: 0;
-  background-color: #428bca;
+	color: #ffffff;
+	text-decoration: none;
+	outline: 0;
+	background-color: #428bca;
 }
 span.twitter-typeahead .tt-suggestion.tt-cursor {
-  color: #ffffff;
-  background-color: #428bca;
+	color: #ffffff;
+	background-color: #428bca;
 }
 span.twitter-typeahead {
-  width: 100%;
+	width: 100%;
 }
 .input-group span.twitter-typeahead {
-  display: block !important;
+	display: block !important;
 }
 .input-group span.twitter-typeahead .tt-dropdown-menu {
-  top: 32px !important;
+	top: 32px !important;
 }
 .input-group.input-group-lg span.twitter-typeahead .tt-dropdown-menu {
-  top: 44px !important;
+	top: 44px !important;
 }
 .input-group.input-group-sm span.twitter-typeahead .tt-dropdown-menu {
-  top: 28px !important;
+	top: 28px !important;
+}
+.mui-btn {
+  text-align: center;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  transition: all 0.2s ease-in-out;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.87);
+  text-transform: uppercase;
+  height: 36px;
+  line-height: 36px;
+  padding: 0 18px;
+  border-radius: 2px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  -webkit-animation-duration: 0.001s;
+  animation-duration: 0.001s;
+  -webkit-animation-name: mui-node-inserted;
+  animation-name: mui-node-inserted;
+}
+
+.mui-btn-raised, .mui-btn-floating {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.2s ease-in-out;
+}
+
+.mui-btn-raised:not(:disabled):active, .mui-btn-floating:not(:disabled):active {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+}
+
+.mui-btn-default {
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #FFF;
+}
+
+.mui-btn-default:hover,
+.mui-btn-default:focus,
+.mui-btn-default:active,
+.mui-open > .mui-btn-default.mui-dropdown-toggle {
+  color: rgba(0, 0, 0, 0.87);
+  background-color: white;
+}
+
+.mui-btn-default[disabled],
+.mui-btn-default[disabled]:hover,
+.mui-btn-default[disabled]:focus,
+.mui-btn-default[disabled]:active,
+fieldset[disabled] .mui-btn-default,
+fieldset[disabled] .mui-btn-default:hover,
+fieldset[disabled] .mui-btn-default:focus,
+fieldset[disabled] .mui-btn-default:active {
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #FFF;
+}
+
+.mui-btn-primary {
+  color: #FFF;
+  background-color: #2196F3;
+}
+
+.mui-btn-primary:hover,
+.mui-btn-primary:focus,
+.mui-btn-primary:active,
+.mui-open > .mui-btn-primary.mui-dropdown-toggle {
+  color: #FFF;
+  background-color: #39a1f4;
+}
+
+.mui-btn-primary[disabled],
+.mui-btn-primary[disabled]:hover,
+.mui-btn-primary[disabled]:focus,
+.mui-btn-primary[disabled]:active,
+fieldset[disabled] .mui-btn-primary,
+fieldset[disabled] .mui-btn-primary:hover,
+fieldset[disabled] .mui-btn-primary:focus,
+fieldset[disabled] .mui-btn-primary:active {
+  color: #FFF;
+  background-color: #2196F3;
 }

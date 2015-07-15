@@ -23,24 +23,10 @@ gem 'bootstrap-sass', '~> 3.1.1'
 gem 'jquery-ui-rails'
 gem 'jquery-rails'
 gem 'foreigner'
-# gem 'bootstrap-datepicker-rails'
-
-gem 'twitter-typeahead-rails', :git => "git://github.com/yourabi/twitter-typeahead-rails.git"
+gem 'twitter-typeahead-rails'
 gem 'ahoy_matey'
 gem 'activeuuid', '>= 0.5.0'
-# gem 'devise'
-
-# To use ActiveModel has_secure_password
-# gem 'bcrypt-ruby', '~> 3.0.0'
-
-# To use Jbuilder templates for JSON
-# gem 'jbuilder'
-
-# Use unicorn as the app server
-# gem 'unicorn'
-
-# Deploy with Capistrano
-# gem 'capistrano'
-
-# To use debugger
-# gem 'debugger'
+gem 'handlebars_assets'
+gem 'simple_form'
+gem 'client_side_validations'
+gem 'client_side_validations-simple_form'

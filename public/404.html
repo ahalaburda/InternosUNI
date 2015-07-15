@@ -1,26 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>The page you were looking for doesn't exist (404)</title>
-  <style type="text/css">
-    body { background-color: #fff; color: #666; text-align: center; font-family: arial, sans-serif; }
-    div.dialog {
-      width: 25em;
-      padding: 0 4em;
-      margin: 4em auto 0 auto;
-      border: 1px solid #ccc;
-      border-right-color: #999;
-      border-bottom-color: #999;
-    }
-    h1 { font-size: 100%; color: #f00; line-height: 1.5em; }
-  </style>
+    <title>The page you were looking for doesn't exist (404)</title>
+    <link rel="stylesheet" href="http://bootsnipp.com/dist/bootsnipp.min.css?ver=70eabcd8097cd299e1ba8efe436992b7">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <style type="text/css">
+        .error-template {padding: 40px 15px;text-align: center;}
+        .error-actions {margin-top:15px;margin-bottom:15px;}
+        .error-actions .btn { margin-right:10px; }
+        .btn-primary {
+            border-radius: 0px;
+        }
+        .btn-hover {
+            border-radius: 0px;
+            font-weight: normal;
+            color: #333333;
+            cursor: pointer;
+            background-color: inherit;
+            border-color: transparent;
+            -webkit-transition: background, 0.5s, ease;
+            -moz-transition: background, 0.5s, ease;
+            -ms-transition: background, 0.5s, ease;
+            -o-transition: background, 0.5s, ease;
+        }
+        h1 ,h2{
+          color: #000;
+        }
+    </style>
 </head>
-
 <body>
-  <!-- This file lives in public/404.html -->
-  <div class="dialog">
-    <h1>The page you were looking for doesn't exist.</h1>
-    <p>You may have mistyped the address or the page may have moved.</p>
-  </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+              <div class="error-template">
+              <img src="sad.png" alt="">
+                  <h1>Oh noooooo!</h1>
+                  <h2 style="font-size: 200px;">404!</h2>
+                  <div class="error-details">
+                     Lo siento, algo sali&oacute; mal, la p&aacute;gina solicitada no existe o fue eliminada.
+                  </div>
+                  <div class="error-actions">
+                      <a href="/" class="btn btn-primary btn-hover btn-lg"><span class="glyphicon glyphicon-home"></span>
+                         Volver a la p&aacute;gina principal </a>
+                      <a href="mailto:informatica@uni.edu.py" class="btn btn-default btn-hover btn-lg"><span class="glyphicon glyphicon-envelope"></span> Contactar al soporte </a>
+                  </div>
+              </div>
+          </div>
+        </div>
+    </div>
 </body>
 </html>

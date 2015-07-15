@@ -1,36 +1,51 @@
 <div class="container">
-<h1>Funcionarios</h1>
-
-
-<table class="table table-hover">
-    <tr class="active"> 
-    <th>Nombre</th>
-    <th>Apellido</th>
-    <th>Cargo</th>
-   <!--  <th>Departamento</th> -->
-    <th>Interno</th>
-    <th>Correo</th>
-    <th>Cumpleaño</th>
-  </tr>
-  
-
-<% @funcionarios.each do |funcionario| %>
-  <tr>
-    <td><%= funcionario.nombre %></td>
-    <td><%= funcionario.apellido %></td>
-    <td><%= funcionario.cargo %></td>
-   <!-- <td><%= funcionario.departamento_id %></td>   -->
-    <td><%= funcionario.interno %></td>
-    <td><%= funcionario.correo %></td>
-    <td><%= funcionario.cumpleanio %></td>
-    <td><%= link_to 'Show', funcionario %></td>
-    <td><%= link_to 'Edit', edit_funcionario_path(funcionario) %></td>
-    <td><%= link_to 'Destroy', funcionario, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-  </tr>
-<% end %>
-</table>
+    <span id="ir-arriba" class="hidden">
+      <a href="#top" class="btn btn-circle btn-lg btn-primary"  onclick="$('html,body').animate({scrollTop:0},'slow');return false;">
+        <i class="glyphicon glyphicon-chevron-up"></i>
+      </a>
+    </span>
+    <h1> Funcionarios 
+        <button type="button" class="btn btn-print btn-outline btn-circle" id="btn1">
+            <span class="glyphicon glyphicon-plus" id="gbtn1"></span>
+        </button>
+    </h1>
+    <div id="flash">
+      <% flash.each do |type, message| %>
+        <div class="alert <%= bootstrap_class_for(type) %> fade in">
+          <button class="close" data-dismiss="alert">×</button>
+          <%= message %>
+        </div>
+      <% end %>
+    </div>
+    <div id="form-funcionarios">
+        <%= render 'formulario' %>
+    </div><br>
+  <table class="table table-hover">
+      <tr class="active"> 
+      <th>Nombre</th>
+      <th>Apellido</th>
+      <th>Cargo</th>
+      <th>Correo</th>
+      <th>Cumpleaño</th>
+      <th>Acciones</th>
+    </tr>
+    <% @funcionariosAll.each do |funcionario| %>
+      <tr>
+        <td><%= funcionario.nombre %></td>
+        <td><%= funcionario.apellido %></td>
+        <td><%= funcionario.cargo %></td>
+        <td><%= funcionario.correo %></td>
+        <td><%= funcionario.cumpleanio %></td>
+        <td>
+            <%= link_to edit_funcionario_path(funcionario), class: 'btn btn-warning btn-outline btn-circle', title: 'Editar', 'data-toggle' => 'tooltip', 'data-placement' => 'right' do %>
+              <span class="glyphicon glyphicon-pencil"></span>
+            <% end %>
+            <%= link_to funcionario, method: :delete, data: { confirm: 'Va eliminarlo, esta seguro?' }, class: 'btn btn-danger btn-outline btn-circle', title: 'borrar', 'data-toggle' => 'tooltip', 'data-placement' => 'right'  do %>
+              <span class="glyphicon glyphicon-remove"></span>
+            <% end %>
+          </td>
+      </tr>
+    <% end %>
+  </table>
 </div>
 <br />
-
-<!-- <%= link_to 'New Funcionario', new_funcionario_path %>  -->
-

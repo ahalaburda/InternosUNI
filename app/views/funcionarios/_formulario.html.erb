@@ -1,0 +1,33 @@
+<%= simple_form_for @funcionario, :validate => true do |f| %>
+<div class="row">
+	<div class="col-md-4">
+		<div class="field">
+			<%= f.input :nombre, :input_html => {class: "form-control"} %>
+			<%= f.input :apellido, :input_html => {class: "form-control"}  %>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="field">
+			<%= f.input :cargo, :input_html => {class: "form-control"} %>
+			<%= f.input :departamento_id, :collection => Departamento.all(:order => 'nombre'), :label_method => :nombre, :prompt => "Elige un departamento", :input_html => {class: "form-control"} %>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="field">
+			<%= f.input :correo, :input_html => {class: "form-control"} %>
+			<%= f.input :cumpleanio, as: :date, start_year: Time.now.year , end_year: Time.now.year - 70, order: [:day, :month, :year] %>
+
+		</div>
+	</div>
+</div>
+	</br>
+	<div class="col-md-offset-11">
+		<div class="actions">
+			<% if controller.action_name == 'new' or controller.action_name == 'index' %>
+				<%= f.submit "Agregar", :class => 'mui-btn mui-btn-primary mui-btn-raised'%>
+			<% elsif controller.action_name == 'edit' %>
+				<%= f.submit "Actualizar", :class => 'btn btn-primary'%>
+			<% end %>
+		</div>
+	</div>
+<% end %>

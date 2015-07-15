@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150115152420) do
+ActiveRecord::Schema.define(:version => 20150415160756) do
 
   create_table "ahoy_events", :force => true do |t|
     t.uuid     "visit_id"
@@ -37,7 +37,6 @@ ActiveRecord::Schema.define(:version => 20150115152420) do
     t.string   "apellido"
     t.string   "cargo"
     t.integer  "departamento_id"
-    t.integer  "interno"
     t.string   "correo"
     t.date     "cumpleanio"
     t.datetime "created_at",      :null => false

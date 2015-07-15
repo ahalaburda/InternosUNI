@@ -2,8 +2,11 @@ class FuncionariosController < ApplicationController
   # GET /funcionarios
   # GET /funcionarios.json
   def index
-    # @funcionarios = Funcionario.all
-     @funcionarios = Funcionario.search(params[:value])
+    @funcionario = Funcionario.new
+    @funcionariosAll = Funcionario.all
+    # @departamento = Departamento.new
+    # @departamentos = Departamento.all
+    @funcionarios = Funcionario.search(params[:value])
     # @func = Funcionario.all(:order => 'updated_at ASC').last
     # @last_update = Funcionario.order("updated_at ASC")
     
@@ -47,7 +50,7 @@ class FuncionariosController < ApplicationController
 
     respond_to do |format|
       if @funcionario.save
-        format.html { redirect_to @funcionario, notice: 'El funcionario se ha creado correctamente.' }
+        format.html { redirect_to funcionarios_url, success: 'Funcionario creado correctamente.' }
         format.json { render json: @funcionario, status: :created, location: @funcionario }
       else
         format.html { render action: "new" }
@@ -63,7 +66,7 @@ class FuncionariosController < ApplicationController
 
     respond_to do |format|
       if @funcionario.update_attributes(params[:funcionario])
-        format.html { redirect_to @funcionario, notice: 'El funcionario se actualizo correctamente.',class: 'alert alert-success' }
+        format.html { redirect_to funcionarios_url, notice: 'Los datos del funcionario se actualizaron correctamente.' }
         format.json { head :no_content }
       else
         format.html { render action: "edit" }
@@ -76,10 +79,10 @@ class FuncionariosController < ApplicationController
   # DELETE /funcionarios/1.json
   def destroy
     @funcionario = Funcionario.find(params[:id])
-    @funcionario.destroy
 
+    @funcionario.destroy
     respond_to do |format|
-      format.html { redirect_to funcionarios_url }
+      format.html { redirect_to funcionarios_url, alert: 'Funcionario eliminado' }
       format.json { head :no_content }
     end
   end

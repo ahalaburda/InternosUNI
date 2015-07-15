@@ -1,1782 +1,2040 @@
 /*!
- * typeahead.js 0.10.5
- * https://github.com/twitter/typeahead.js
- * Copyright 2013-2014 Twitter, Inc. and other contributors; Licensed MIT
- */
+ * jQuery Typeahead
+ * Copyright (C) 2015 RunningCoder.org
+ * Licensed under the MIT license
+ *
+ * @author Tom Bertrand
+ * @version 2.0.0-rc.5 (2015-06-17)
+ * @link http://www.runningcoder.org/jquerytypeahead/
+*/
+;
+(function (window, document, $, undefined) {
 
-(function($) {
-    var _ = function() {
-        "use strict";
-        return {
-            isMsie: function() {
-                return /(msie|trident)/i.test(navigator.userAgent) ? navigator.userAgent.match(/(msie |rv:)(\d+(.\d+)?)/i)[2] : false;
-            },
-            isBlankString: function(str) {
-                return !str || /^\s*$/.test(str);
-            },
-            escapeRegExChars: function(str) {
-                return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-            },
-            isString: function(obj) {
-                return typeof obj === "string";
-            },
-            isNumber: function(obj) {
-                return typeof obj === "number";
-            },
-            isArray: $.isArray,
-            isFunction: $.isFunction,
-            isObject: $.isPlainObject,
-            isUndefined: function(obj) {
-                return typeof obj === "undefined";
-            },
-            toStr: function toStr(s) {
-                return _.isUndefined(s) || s === null ? "" : s + "";
-            },
-            bind: $.proxy,
-            each: function(collection, cb) {
-                $.each(collection, reverseArgs);
-                function reverseArgs(index, value) {
-                    return cb(value, index);
-                }
-            },
-            map: $.map,
-            filter: $.grep,
-            every: function(obj, test) {
-                var result = true;
-                if (!obj) {
-                    return result;
-                }
-                $.each(obj, function(key, val) {
-                    if (!(result = test.call(null, val, key, obj))) {
-                        return false;
-                    }
-                });
-                return !!result;
-            },
-            some: function(obj, test) {
-                var result = false;
-                if (!obj) {
-                    return result;
-                }
-                $.each(obj, function(key, val) {
-                    if (result = test.call(null, val, key, obj)) {
-                        return false;
-                    }
-                });
-                return !!result;
-            },
-            mixin: $.extend,
-            getUniqueId: function() {
-                var counter = 0;
-                return function() {
-                    return counter++;
-                };
-            }(),
-            templatify: function templatify(obj) {
-                return $.isFunction(obj) ? obj : template;
-                function template() {
-                    return String(obj);
-                }
-            },
-            defer: function(fn) {
-                setTimeout(fn, 0);
-            },
-            debounce: function(func, wait, immediate) {
-                var timeout, result;
-                return function() {
-                    var context = this, args = arguments, later, callNow;
-                    later = function() {
-                        timeout = null;
-                        if (!immediate) {
-                            result = func.apply(context, args);
+    window.Typeahead = {
+        version: '2.0.0-rc.5'
+    };
+
+    "use strict";
+
+    /**
+     * @private
+     * Default options
+     *
+     * @link http://www.runningcoder.org/jquerytypeahead/documentation/
+     */
+    var _options = {
+        input: null,
+        minLength: 2,           // Modified feature, now accepts 0 to search on focus
+        maxItem: 8,             // Modified feature, now accepts 0 as "Infinity" meaning all the results will be displayed
+        dynamic: false,
+        delay: 300,
+        order: null,            // ONLY sorts the first "display" key
+        offset: false,
+        hint: false,            // -> Improved feature, Added support for excessive "space" characters
+        accent: false,
+        highlight: true,
+        group: false,           // -> Improved feature, Array second index is a custom group title (html allowed)
+        maxItemPerGroup: null,  // -> Renamed option
+        dropdownFilter: false,  // -> Renamed option, true will take group options string will filter on object key
+        dynamicFilter: null,    // -> *Coming soon* New feature, filter the typeahead results based on dynamic value, Ex: Players based on TeamID
+        backdrop: false,
+        cache: false,
+        ttl: 3600000,
+        compression: false,     // -> Requires LZString library
+        suggestion: false,      // -> *Coming soon* New feature, save last searches and display suggestion on matched characters
+        searchOnFocus: false,   // -> New feature, display search results on input focus
+        resultContainer: null,  // -> New feature, list the results inside any container string or jQuery object
+        generateOnLoad: null,   // -> New feature, forces the source to be generated on page load even if the input is not focused!
+        mustSelectItem: false,  // -> New option, the submit function only gets called if an item is selected
+        href: null,             // -> New feature, String or Function to format the url for right-click & open in new tab on link results
+        display: ["display"],   // -> Improved feature, allows search in multiple item keys ["display1", "display2"]
+        template: null,
+        emptyTemplate: false,   // -> New feature, display an empty template if no result
+        source: null,           // -> Modified feature, source.ignore is now a regex; item.group is a reserved word; Ajax callbacks: done, fail, complete, always
+        callback: {
+            onInit: null,
+            onReady: null,      // -> New callback, when the Typeahead initial preparation is completed
+            onSearch: null,     // -> New callback, when data is being fetched & analyzed to give search results
+            onResult: null,
+            onLayoutBuiltBefore: null,  // -> New callback, when the result HTML is build, modify it before it get showed
+            onLayoutBuiltAfter: null,   // -> New callback, modify the dom right after the results gets inserted in the result container
+            onNavigate: null,   // -> New callback, when a key is pressed to navigate the results
+            onMouseEnter: null,
+            onMouseLeave: null,
+            onClickBefore: null,// -> Improved feature, possibility to e.preventDefault() to prevent the Typeahead behaviors
+            onClickAfter: null, // -> New feature, happens after the default clicked behaviors has been executed
+            onSendRequest: null,// -> New callback, gets called when the Ajax request(s) are sent
+            onReceiveRequest: null,     // -> New callback, gets called when the Ajax request(s) are all received
+            onSubmit: null
+        },
+        selector: {
+            container: "typeahead-container",
+            group: "typeahead-group",
+            result: "typeahead-result",
+            list: "typeahead-list",
+            display: "typeahead-display",
+            query: "typeahead-query",
+            filter: "typeahead-filter",
+            filterButton: "typeahead-filter-button",
+            filterValue: "typeahead-filter-value",
+            dropdown: "typeahead-dropdown",
+            dropdownCarret: "typeahead-caret",
+            button: "typeahead-button",
+            backdrop: "typeahead-backdrop",
+            hint: "typeahead-hint"
+        },
+        debug: false
+    };
+
+    /**
+     * @private
+     * Event namespace
+     */
+    var _namespace = ".typeahead";
+
+    /**
+     * @private
+     * Accent equivalents
+     */
+    var _accent = {
+        from: "ãàáäâẽèéëêìíïîõòóöôùúüûñç",
+        to: "aaaaaeeeeeiiiiooooouuuunc"
+    };
+
+    // SOURCE ITEMS RESERVED KEYS: group, display, data, matchedKey, , href
+
+    /**
+     * @constructor
+     * Typeahead Class
+     *
+     * @param {object} node jQuery input object
+     * @param {object} options User defined options
+     */
+    var Typeahead = function (node, options) {
+
+        this.rawQuery = '';             // Unmodified input query
+        this.query = '';                // Input query
+        this.source = {};               // The generated source kept in memory
+        this.isGenerated = null;        // Generated results -> null: not generated, false: generating, true generated
+        this.generatedGroupCount = 0;   // Number of groups generated, if limit reached the search can be done
+        this.groupCount = 0;            // Number of groups, this value gets counted on the initial source unification
+        this.groupBy = "group";         // This option will change according to filtering or custom grouping
+        this.result = [];               // Results based on Source-query match (only contains the displayed elements)
+        this.resultCount = 0;           // Total results based on Source-query match
+        this.options = options;         // Typeahead options (Merged default & user defined)
+        this.node = node;               // jQuery object of the Typeahead <input>
+        this.container = null;          // Typeahead container, usually right after <form>
+        this.resultContainer = null;    // Typeahead result container (html)
+        this.item = null;               // The selected item
+        this.dropdownFilter = null;     // The selected dropdown filter (if any)
+        this.xhr = {};                  // Ajax request(s) stack
+        this.hintIndex = null;          // Numeric value of the hint index in the result list
+        this.filters = {};              // Filter list for searching, dropdown and dynamic(s)
+        this.requests = {};             // Store the group:request instead of generating them every time
+
+        this.backdrop = {};             // The backdrop object
+        this.hint = {};                 // The hint object
+
+        this.__construct();
+
+    };
+
+    Typeahead.prototype = {
+
+        extendOptions: function () {
+
+            // If the Typeahead is dynamic, force no cache & no compression
+            if (this.options.dynamic) {
+                this.options.cache = false;
+                this.options.compression = false;
+            }
+
+            // Ensure Localstorage is available
+            if (this.options.cache) {
+                this.options.cache = (function () {
+                    var supported = typeof window.localStorage !== "undefined";
+                    if (supported) {
+                        try {
+                            window.localStorage.setItem("typeahead", "typeahead");
+                            window.localStorage.removeItem("typeahead");
+                        } catch (e) {
+                            supported = false;
                         }
+                    }
+                    return supported;
+                })();
+            }
+
+            if (this.options.compression) {
+                if (typeof LZString !== 'object' || !this.options.cache) {
+                    // {debug}
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'extendOptions()',
+                        'message': 'Missing LZString Library or options.cache, no compression will occur.'
+                    });
+
+                    _debug.print();
+                    // {/debug}
+                    this.options.compression = false;
+                }
+            }
+
+            if (typeof this.options.maxItem !== "undefined" && (!/^\d+$/.test(this.options.maxItem) || this.options.maxItem === 0)) {
+                this.options.maxItem = Infinity;
+            }
+
+            if (this.options.maxItemPerGroup && !/^\d+$/.test(this.options.maxItemPerGroup)) {
+                this.options.maxItemPerGroup = null;
+            }
+
+            if (this.options.display && !(this.options.display instanceof Array)) {
+                this.options.display = [this.options.display];
+            }
+
+            if (this.options.group && !(this.options.group instanceof Array)) {
+                this.options.group = [this.options.group];
+            }
+
+            if (this.options.resultContainer) {
+                if (typeof this.options.resultContainer === "string") {
+                    this.options.resultContainer = $(this.options.resultContainer);
+                }
+
+                if (!(this.options.resultContainer instanceof jQuery) || !this.options.resultContainer[0]) {
+                    // {debug}
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'extendOptions()',
+                        'message': 'Invalid jQuery selector or jQuery Object for "options.resultContainer".'
+                    });
+
+                    _debug.print();
+                    // {/debug}
+                } else {
+                    this.resultContainer = this.options.resultContainer;
+                }
+            }
+
+            if (this.options.group && typeof this.options.group[0] === "string" && this.options.maxItemPerGroup) {
+                this.groupBy = this.options.group[0];
+            }
+
+            // Compatibility onClick callback
+            if (this.options.callback && this.options.callback.onClick) {
+                this.options.callback.onClickBefore = this.options.callback.onClick;
+                delete this.options.callback.onClick;
+            }
+
+            this.options = $.extend(
+                true,
+                {},
+                _options,
+                this.options
+            );
+
+        },
+
+        unifySourceFormat: function () {
+
+            if (this.options.source instanceof Array) {
+                this.options.source = {
+                    group: {
+                        data: this.options.source
+                    }
+                };
+
+                this.groupCount += 1;
+                return true;
+            }
+
+            if (typeof this.options.source.data !== 'undefined' || typeof this.options.source.url !== 'undefined') {
+                this.options.source = {
+                    group: this.options.source
+                };
+            }
+
+            for (var group in this.options.source) {
+                if (!this.options.source.hasOwnProperty(group)) continue;
+
+                // Backward compatibility for source.url declaration
+                if (typeof this.options.source[group] === "string" || this.options.source[group] instanceof Array) {
+                    this.options.source[group] = {
+                        url: this.options.source[group]
                     };
-                    callNow = immediate && !timeout;
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                    if (callNow) {
-                        result = func.apply(context, args);
-                    }
-                    return result;
-                };
-            },
-            throttle: function(func, wait) {
-                var context, args, timeout, result, previous, later;
-                previous = 0;
-                later = function() {
-                    previous = new Date();
-                    timeout = null;
-                    result = func.apply(context, args);
-                };
-                return function() {
-                    var now = new Date(), remaining = wait - (now - previous);
-                    context = this;
-                    args = arguments;
-                    if (remaining <= 0) {
-                        clearTimeout(timeout);
-                        timeout = null;
-                        previous = now;
-                        result = func.apply(context, args);
-                    } else if (!timeout) {
-                        timeout = setTimeout(later, remaining);
-                    }
-                    return result;
-                };
-            },
-            noop: function() {}
-        };
-    }();
-    var VERSION = "0.10.5";
-    var tokenizers = function() {
-        "use strict";
-        return {
-            nonword: nonword,
-            whitespace: whitespace,
-            obj: {
-                nonword: getObjTokenizer(nonword),
-                whitespace: getObjTokenizer(whitespace)
-            }
-        };
-        function whitespace(str) {
-            str = _.toStr(str);
-            return str ? str.split(/\s+/) : [];
-        }
-        function nonword(str) {
-            str = _.toStr(str);
-            return str ? str.split(/\W+/) : [];
-        }
-        function getObjTokenizer(tokenizer) {
-            return function setKey() {
-                var args = [].slice.call(arguments, 0);
-                return function tokenize(o) {
-                    var tokens = [];
-                    _.each(args, function(k) {
-                        tokens = tokens.concat(tokenizer(_.toStr(o[k])));
+                }
+
+                if (!this.options.source[group].data && !this.options.source[group].url) {
+
+                    // {debug}
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'unifySourceFormat()',
+                        'arguments': JSON.stringify(this.options.source),
+                        'message': 'Undefined "options.source.' + group + '.[data|url]" is Missing - Typeahead dropped'
                     });
-                    return tokens;
-                };
-            };
-        }
-    }();
-    var LruCache = function() {
-        "use strict";
-        function LruCache(maxSize) {
-            this.maxSize = _.isNumber(maxSize) ? maxSize : 100;
-            this.reset();
-            if (this.maxSize <= 0) {
-                this.set = this.get = $.noop;
-            }
-        }
-        _.mixin(LruCache.prototype, {
-            set: function set(key, val) {
-                var tailItem = this.list.tail, node;
-                if (this.size >= this.maxSize) {
-                    this.list.remove(tailItem);
-                    delete this.hash[tailItem.key];
+
+                    _debug.print();
+                    // {/debug}
+
+                    return false;
                 }
-                if (node = this.hash[key]) {
-                    node.val = val;
-                    this.list.moveToFront(node);
-                } else {
-                    node = new Node(key, val);
-                    this.list.add(node);
-                    this.hash[key] = node;
-                    this.size++;
+
+                if (this.options.source[group].display && !(this.options.source[group].display instanceof Array)) {
+                    this.options.source[group].display = [this.options.source[group].display];
                 }
-            },
-            get: function get(key) {
-                var node = this.hash[key];
-                if (node) {
-                    this.list.moveToFront(node);
-                    return node.val;
-                }
-            },
-            reset: function reset() {
-                this.size = 0;
-                this.hash = {};
-                this.list = new List();
-            }
-        });
-        function List() {
-            this.head = this.tail = null;
-        }
-        _.mixin(List.prototype, {
-            add: function add(node) {
-                if (this.head) {
-                    node.next = this.head;
-                    this.head.prev = node;
-                }
-                this.head = node;
-                this.tail = this.tail || node;
-            },
-            remove: function remove(node) {
-                node.prev ? node.prev.next = node.next : this.head = node.next;
-                node.next ? node.next.prev = node.prev : this.tail = node.prev;
-            },
-            moveToFront: function(node) {
-                this.remove(node);
-                this.add(node);
-            }
-        });
-        function Node(key, val) {
-            this.key = key;
-            this.val = val;
-            this.prev = this.next = null;
-        }
-        return LruCache;
-    }();
-    var PersistentStorage = function() {
-        "use strict";
-        var ls, methods;
-        try {
-            ls = window.localStorage;
-            ls.setItem("~~~", "!");
-            ls.removeItem("~~~");
-        } catch (err) {
-            ls = null;
-        }
-        function PersistentStorage(namespace) {
-            this.prefix = [ "__", namespace, "__" ].join("");
-            this.ttlKey = "__ttl__";
-            this.keyMatcher = new RegExp("^" + _.escapeRegExChars(this.prefix));
-        }
-        if (ls && window.JSON) {
-            methods = {
-                _prefix: function(key) {
-                    return this.prefix + key;
-                },
-                _ttlKey: function(key) {
-                    return this._prefix(key) + this.ttlKey;
-                },
-                get: function(key) {
-                    if (this.isExpired(key)) {
-                        this.remove(key);
-                    }
-                    return decode(ls.getItem(this._prefix(key)));
-                },
-                set: function(key, val, ttl) {
-                    if (_.isNumber(ttl)) {
-                        ls.setItem(this._ttlKey(key), encode(now() + ttl));
-                    } else {
-                        ls.removeItem(this._ttlKey(key));
-                    }
-                    return ls.setItem(this._prefix(key), encode(val));
-                },
-                remove: function(key) {
-                    ls.removeItem(this._ttlKey(key));
-                    ls.removeItem(this._prefix(key));
-                    return this;
-                },
-                clear: function() {
-                    var i, key, keys = [], len = ls.length;
-                    for (i = 0; i < len; i++) {
-                        if ((key = ls.key(i)).match(this.keyMatcher)) {
-                            keys.push(key.replace(this.keyMatcher, ""));
-                        }
-                    }
-                    for (i = keys.length; i--; ) {
-                        this.remove(keys[i]);
-                    }
-                    return this;
-                },
-                isExpired: function(key) {
-                    var ttl = decode(ls.getItem(this._ttlKey(key)));
-                    return _.isNumber(ttl) && now() > ttl ? true : false;
-                }
-            };
-        } else {
-            methods = {
-                get: _.noop,
-                set: _.noop,
-                remove: _.noop,
-                clear: _.noop,
-                isExpired: _.noop
-            };
-        }
-        _.mixin(PersistentStorage.prototype, methods);
-        return PersistentStorage;
-        function now() {
-            return new Date().getTime();
-        }
-        function encode(val) {
-            return JSON.stringify(_.isUndefined(val) ? null : val);
-        }
-        function decode(val) {
-            return JSON.parse(val);
-        }
-    }();
-    var Transport = function() {
-        "use strict";
-        var pendingRequestsCount = 0, pendingRequests = {}, maxPendingRequests = 6, sharedCache = new LruCache(10);
-        function Transport(o) {
-            o = o || {};
-            this.cancelled = false;
-            this.lastUrl = null;
-            this._send = o.transport ? callbackToDeferred(o.transport) : $.ajax;
-            this._get = o.rateLimiter ? o.rateLimiter(this._get) : this._get;
-            this._cache = o.cache === false ? new LruCache(0) : sharedCache;
-        }
-        Transport.setMaxPendingRequests = function setMaxPendingRequests(num) {
-            maxPendingRequests = num;
-        };
-        Transport.resetCache = function resetCache() {
-            sharedCache.reset();
-        };
-        _.mixin(Transport.prototype, {
-            _get: function(url, o, cb) {
-                var that = this, jqXhr;
-                if (this.cancelled || url !== this.lastUrl) {
-                    return;
-                }
-                if (jqXhr = pendingRequests[url]) {
-                    jqXhr.done(done).fail(fail);
-                } else if (pendingRequestsCount < maxPendingRequests) {
-                    pendingRequestsCount++;
-                    pendingRequests[url] = this._send(url, o).done(done).fail(fail).always(always);
-                } else {
-                    this.onDeckRequestArgs = [].slice.call(arguments, 0);
-                }
-                function done(resp) {
-                    cb && cb(null, resp);
-                    that._cache.set(url, resp);
-                }
-                function fail() {
-                    cb && cb(true);
-                }
-                function always() {
-                    pendingRequestsCount--;
-                    delete pendingRequests[url];
-                    if (that.onDeckRequestArgs) {
-                        that._get.apply(that, that.onDeckRequestArgs);
-                        that.onDeckRequestArgs = null;
-                    }
-                }
-            },
-            get: function(url, o, cb) {
-                var resp;
-                if (_.isFunction(o)) {
-                    cb = o;
-                    o = {};
-                }
-                this.cancelled = false;
-                this.lastUrl = url;
-                if (resp = this._cache.get(url)) {
-                    _.defer(function() {
-                        cb && cb(null, resp);
-                    });
-                } else {
-                    this._get(url, o, cb);
-                }
-                return !!resp;
-            },
-            cancel: function() {
-                this.cancelled = true;
-            }
-        });
-        return Transport;
-        function callbackToDeferred(fn) {
-            return function customSendWrapper(url, o) {
-                var deferred = $.Deferred();
-                fn(url, o, onSuccess, onError);
-                return deferred;
-                function onSuccess(resp) {
-                    _.defer(function() {
-                        deferred.resolve(resp);
-                    });
-                }
-                function onError(err) {
-                    _.defer(function() {
-                        deferred.reject(err);
-                    });
-                }
-            };
-        }
-    }();
-    var SearchIndex = function() {
-        "use strict";
-        function SearchIndex(o) {
-            o = o || {};
-            if (!o.datumTokenizer || !o.queryTokenizer) {
-                $.error("datumTokenizer and queryTokenizer are both required");
-            }
-            this.datumTokenizer = o.datumTokenizer;
-            this.queryTokenizer = o.queryTokenizer;
-            this.reset();
-        }
-        _.mixin(SearchIndex.prototype, {
-            bootstrap: function bootstrap(o) {
-                this.datums = o.datums;
-                this.trie = o.trie;
-            },
-            add: function(data) {
-                var that = this;
-                data = _.isArray(data) ? data : [ data ];
-                _.each(data, function(datum) {
-                    var id, tokens;
-                    id = that.datums.push(datum) - 1;
-                    tokens = normalizeTokens(that.datumTokenizer(datum));
-                    _.each(tokens, function(token) {
-                        var node, chars, ch;
-                        node = that.trie;
-                        chars = token.split("");
-                        while (ch = chars.shift()) {
-                            node = node.children[ch] || (node.children[ch] = newNode());
-                            node.ids.push(id);
-                        }
-                    });
-                });
-            },
-            get: function get(query) {
-                var that = this, tokens, matches;
-                tokens = normalizeTokens(this.queryTokenizer(query));
-                _.each(tokens, function(token) {
-                    var node, chars, ch, ids;
-                    if (matches && matches.length === 0) {
-                        return false;
-                    }
-                    node = that.trie;
-                    chars = token.split("");
-                    while (node && (ch = chars.shift())) {
-                        node = node.children[ch];
-                    }
-                    if (node && chars.length === 0) {
-                        ids = node.ids.slice(0);
-                        matches = matches ? getIntersection(matches, ids) : ids;
-                    } else {
-                        matches = [];
-                        return false;
-                    }
-                });
-                return matches ? _.map(unique(matches), function(id) {
-                    return that.datums[id];
-                }) : [];
-            },
-            reset: function reset() {
-                this.datums = [];
-                this.trie = newNode();
-            },
-            serialize: function serialize() {
-                return {
-                    datums: this.datums,
-                    trie: this.trie
-                };
-            }
-        });
-        return SearchIndex;
-        function normalizeTokens(tokens) {
-            tokens = _.filter(tokens, function(token) {
-                return !!token;
-            });
-            tokens = _.map(tokens, function(token) {
-                return token.toLowerCase();
-            });
-            return tokens;
-        }
-        function newNode() {
-            return {
-                ids: [],
-                children: {}
-            };
-        }
-        function unique(array) {
-            var seen = {}, uniques = [];
-            for (var i = 0, len = array.length; i < len; i++) {
-                if (!seen[array[i]]) {
-                    seen[array[i]] = true;
-                    uniques.push(array[i]);
-                }
-            }
-            return uniques;
-        }
-        function getIntersection(arrayA, arrayB) {
-            var ai = 0, bi = 0, intersection = [];
-            arrayA = arrayA.sort(compare);
-            arrayB = arrayB.sort(compare);
-            var lenArrayA = arrayA.length, lenArrayB = arrayB.length;
-            while (ai < lenArrayA && bi < lenArrayB) {
-                if (arrayA[ai] < arrayB[bi]) {
-                    ai++;
-                } else if (arrayA[ai] > arrayB[bi]) {
-                    bi++;
-                } else {
-                    intersection.push(arrayA[ai]);
-                    ai++;
-                    bi++;
-                }
-            }
-            return intersection;
-            function compare(a, b) {
-                return a - b;
-            }
-        }
-    }();
-    var oParser = function() {
-        "use strict";
-        return {
-            local: getLocal,
-            prefetch: getPrefetch,
-            remote: getRemote
-        };
-        function getLocal(o) {
-            return o.local || null;
-        }
-        function getPrefetch(o) {
-            var prefetch, defaults;
-            defaults = {
-                url: null,
-                thumbprint: "",
-                ttl: 24 * 60 * 60 * 1e3,
-                filter: null,
-                ajax: {}
-            };
-            if (prefetch = o.prefetch || null) {
-                prefetch = _.isString(prefetch) ? {
-                    url: prefetch
-                } : prefetch;
-                prefetch = _.mixin(defaults, prefetch);
-                prefetch.thumbprint = VERSION + prefetch.thumbprint;
-                prefetch.ajax.type = prefetch.ajax.type || "GET";
-                prefetch.ajax.dataType = prefetch.ajax.dataType || "json";
-                !prefetch.url && $.error("prefetch requires url to be set");
-            }
-            return prefetch;
-        }
-        function getRemote(o) {
-            var remote, defaults;
-            defaults = {
-                url: null,
-                cache: true,
-                wildcard: "%QUERY",
-                replace: null,
-                rateLimitBy: "debounce",
-                rateLimitWait: 300,
-                send: null,
-                filter: null,
-                ajax: {}
-            };
-            if (remote = o.remote || null) {
-                remote = _.isString(remote) ? {
-                    url: remote
-                } : remote;
-                remote = _.mixin(defaults, remote);
-                remote.rateLimiter = /^throttle$/i.test(remote.rateLimitBy) ? byThrottle(remote.rateLimitWait) : byDebounce(remote.rateLimitWait);
-                remote.ajax.type = remote.ajax.type || "GET";
-                remote.ajax.dataType = remote.ajax.dataType || "json";
-                delete remote.rateLimitBy;
-                delete remote.rateLimitWait;
-                !remote.url && $.error("remote requires url to be set");
-            }
-            return remote;
-            function byDebounce(wait) {
-                return function(fn) {
-                    return _.debounce(fn, wait);
-                };
-            }
-            function byThrottle(wait) {
-                return function(fn) {
-                    return _.throttle(fn, wait);
-                };
-            }
-        }
-    }();
-    (function(root) {
-        "use strict";
-        var old, keys;
-        old = root.Bloodhound;
-        keys = {
-            data: "data",
-            protocol: "protocol",
-            thumbprint: "thumbprint"
-        };
-        root.Bloodhound = Bloodhound;
-        function Bloodhound(o) {
-            if (!o || !o.local && !o.prefetch && !o.remote) {
-                $.error("one of local, prefetch, or remote is required");
-            }
-            this.limit = o.limit || 5;
-            this.sorter = getSorter(o.sorter);
-            this.dupDetector = o.dupDetector || ignoreDuplicates;
-            this.local = oParser.local(o);
-            this.prefetch = oParser.prefetch(o);
-            this.remote = oParser.remote(o);
-            this.cacheKey = this.prefetch ? this.prefetch.cacheKey || this.prefetch.url : null;
-            this.index = new SearchIndex({
-                datumTokenizer: o.datumTokenizer,
-                queryTokenizer: o.queryTokenizer
-            });
-            this.storage = this.cacheKey ? new PersistentStorage(this.cacheKey) : null;
-        }
-        Bloodhound.noConflict = function noConflict() {
-            root.Bloodhound = old;
-            return Bloodhound;
-        };
-        Bloodhound.tokenizers = tokenizers;
-        _.mixin(Bloodhound.prototype, {
-            _loadPrefetch: function loadPrefetch(o) {
-                var that = this, serialized, deferred;
-                if (serialized = this._readFromStorage(o.thumbprint)) {
-                    this.index.bootstrap(serialized);
-                    deferred = $.Deferred().resolve();
-                } else {
-                    deferred = $.ajax(o.url, o.ajax).done(handlePrefetchResponse);
-                }
-                return deferred;
-                function handlePrefetchResponse(resp) {
-                    that.clear();
-                    that.add(o.filter ? o.filter(resp) : resp);
-                    that._saveToStorage(that.index.serialize(), o.thumbprint, o.ttl);
-                }
-            },
-            _getFromRemote: function getFromRemote(query, cb) {
-                var that = this, url, uriEncodedQuery;
-                if (!this.transport) {
-                    return;
-                }
-                query = query || "";
-                uriEncodedQuery = encodeURIComponent(query);
-                url = this.remote.replace ? this.remote.replace(this.remote.url, query) : this.remote.url.replace(this.remote.wildcard, uriEncodedQuery);
-                return this.transport.get(url, this.remote.ajax, handleRemoteResponse);
-                function handleRemoteResponse(err, resp) {
-                    err ? cb([]) : cb(that.remote.filter ? that.remote.filter(resp) : resp);
-                }
-            },
-            _cancelLastRemoteRequest: function cancelLastRemoteRequest() {
-                this.transport && this.transport.cancel();
-            },
-            _saveToStorage: function saveToStorage(data, thumbprint, ttl) {
-                if (this.storage) {
-                    this.storage.set(keys.data, data, ttl);
-                    this.storage.set(keys.protocol, location.protocol, ttl);
-                    this.storage.set(keys.thumbprint, thumbprint, ttl);
-                }
-            },
-            _readFromStorage: function readFromStorage(thumbprint) {
-                var stored = {}, isExpired;
-                if (this.storage) {
-                    stored.data = this.storage.get(keys.data);
-                    stored.protocol = this.storage.get(keys.protocol);
-                    stored.thumbprint = this.storage.get(keys.thumbprint);
-                }
-                isExpired = stored.thumbprint !== thumbprint || stored.protocol !== location.protocol;
-                return stored.data && !isExpired ? stored.data : null;
-            },
-            _initialize: function initialize() {
-                var that = this, local = this.local, deferred;
-                deferred = this.prefetch ? this._loadPrefetch(this.prefetch) : $.Deferred().resolve();
-                local && deferred.done(addLocalToIndex);
-                this.transport = this.remote ? new Transport(this.remote) : null;
-                return this.initPromise = deferred.promise();
-                function addLocalToIndex() {
-                    that.add(_.isFunction(local) ? local() : local);
-                }
-            },
-            initialize: function initialize(force) {
-                return !this.initPromise || force ? this._initialize() : this.initPromise;
-            },
-            add: function add(data) {
-                this.index.add(data);
-            },
-            get: function get(query, cb) {
-                var that = this, matches = [], cacheHit = false;
-                matches = this.index.get(query);
-                matches = this.sorter(matches).slice(0, this.limit);
-                matches.length < this.limit ? cacheHit = this._getFromRemote(query, returnRemoteMatches) : this._cancelLastRemoteRequest();
-                if (!cacheHit) {
-                    (matches.length > 0 || !this.transport) && cb && cb(matches);
-                }
-                function returnRemoteMatches(remoteMatches) {
-                    var matchesWithBackfill = matches.slice(0);
-                    _.each(remoteMatches, function(remoteMatch) {
-                        var isDuplicate;
-                        isDuplicate = _.some(matchesWithBackfill, function(match) {
-                            return that.dupDetector(remoteMatch, match);
+
+                if (this.options.source[group].ignore) {
+                    if (!(this.options.source[group].ignore instanceof RegExp)) {
+
+                        // {debug}
+                        _debug.log({
+                            'node': this.node.selector,
+                            'function': 'unifySourceFormat()',
+                            'arguments': JSON.stringify(this.options.source[group].ignore),
+                            'message': 'Invalid ignore RegExp.'
                         });
-                        !isDuplicate && matchesWithBackfill.push(remoteMatch);
-                        return matchesWithBackfill.length < that.limit;
-                    });
-                    cb && cb(that.sorter(matchesWithBackfill));
+
+                        _debug.print();
+                        // {/debug}
+
+                        delete this.options.source[group].ignore;
+                    }
                 }
-            },
-            clear: function clear() {
-                this.index.reset();
-            },
-            clearPrefetchCache: function clearPrefetchCache() {
-                this.storage && this.storage.clear();
-            },
-            clearRemoteCache: function clearRemoteCache() {
-                this.transport && Transport.resetCache();
-            },
-            ttAdapter: function ttAdapter() {
-                return _.bind(this.get, this);
+
+                this.groupCount += 1;
             }
-        });
-        return Bloodhound;
-        function getSorter(sortFn) {
-            return _.isFunction(sortFn) ? sort : noSort;
-            function sort(array) {
-                return array.sort(sortFn);
-            }
-            function noSort(array) {
-                return array;
-            }
-        }
-        function ignoreDuplicates() {
-            return false;
-        }
-    })(this);
-    var html = function() {
-        return {
-            wrapper: '<span class="twitter-typeahead"></span>',
-            dropdown: '<span class="tt-dropdown-menu"></span>',
-            dataset: '<div class="tt-dataset-%CLASS%"></div>',
-            suggestions: '<span class="tt-suggestions"></span>',
-            suggestion: '<div class="tt-suggestion"></div>'
-        };
-    }();
-    var css = function() {
-        "use strict";
-        var css = {
-            wrapper: {
-                position: "relative",
-                display: "inline-block"
-            },
-            hint: {
-                position: "absolute",
-                top: "0",
-                left: "0",
-                borderColor: "transparent",
-                boxShadow: "none",
-                opacity: "1"
-            },
-            input: {
-                position: "relative",
-                verticalAlign: "top",
-                backgroundColor: "transparent"
-            },
-            inputWithNoHint: {
-                position: "relative",
-                verticalAlign: "top"
-            },
-            dropdown: {
-                position: "absolute",
-                top: "100%",
-                left: "0",
-                zIndex: "100",
-                display: "none"
-            },
-            suggestions: {
-                display: "block"
-            },
-            suggestion: {
-                whiteSpace: "nowrap",
-                cursor: "pointer"
-            },
-            suggestionChild: {
-                whiteSpace: "normal"
-            },
-            ltr: {
-                left: "0",
-                right: "auto"
-            },
-            rtl: {
-                left: "auto",
-                right: " 0"
-            }
-        };
-        if (_.isMsie()) {
-            _.mixin(css.input, {
-                backgroundImage: "url(data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7)"
+
+            return true;
+        },
+
+        init: function () {
+
+            this.helper.executeCallback(this.options.callback.onInit, [this.node]);
+
+            this.container = this.node.closest('.' + this.options.selector.container);
+
+            // {debug}
+            _debug.log({
+                'node': this.node.selector,
+                'function': 'init()',
+                //'arguments': JSON.stringify(this.options),
+                'message': 'OK - Typeahead activated on ' + this.node.selector
             });
-        }
-        if (_.isMsie() && _.isMsie() <= 7) {
-            _.mixin(css.input, {
-                marginTop: "-1px"
-            });
-        }
-        return css;
-    }();
-    var EventBus = function() {
-        "use strict";
-        var namespace = "typeahead:";
-        function EventBus(o) {
-            if (!o || !o.el) {
-                $.error("EventBus initialized without el");
-            }
-            this.$el = $(o.el);
-        }
-        _.mixin(EventBus.prototype, {
-            trigger: function(type) {
-                var args = [].slice.call(arguments, 1);
-                this.$el.trigger(namespace + type, args);
-            }
-        });
-        return EventBus;
-    }();
-    var EventEmitter = function() {
-        "use strict";
-        var splitter = /\s+/, nextTick = getNextTick();
-        return {
-            onSync: onSync,
-            onAsync: onAsync,
-            off: off,
-            trigger: trigger
-        };
-        function on(method, types, cb, context) {
-            var type;
-            if (!cb) {
-                return this;
-            }
-            types = types.split(splitter);
-            cb = context ? bindContext(cb, context) : cb;
-            this._callbacks = this._callbacks || {};
-            while (type = types.shift()) {
-                this._callbacks[type] = this._callbacks[type] || {
-                    sync: [],
-                    async: []
-                };
-                this._callbacks[type][method].push(cb);
-            }
-            return this;
-        }
-        function onAsync(types, cb, context) {
-            return on.call(this, "async", types, cb, context);
-        }
-        function onSync(types, cb, context) {
-            return on.call(this, "sync", types, cb, context);
-        }
-        function off(types) {
-            var type;
-            if (!this._callbacks) {
-                return this;
-            }
-            types = types.split(splitter);
-            while (type = types.shift()) {
-                delete this._callbacks[type];
-            }
-            return this;
-        }
-        function trigger(types) {
-            var type, callbacks, args, syncFlush, asyncFlush;
-            if (!this._callbacks) {
-                return this;
-            }
-            types = types.split(splitter);
-            args = [].slice.call(arguments, 1);
-            while ((type = types.shift()) && (callbacks = this._callbacks[type])) {
-                syncFlush = getFlush(callbacks.sync, this, [ type ].concat(args));
-                asyncFlush = getFlush(callbacks.async, this, [ type ].concat(args));
-                syncFlush() && nextTick(asyncFlush);
-            }
-            return this;
-        }
-        function getFlush(callbacks, context, args) {
-            return flush;
-            function flush() {
-                var cancelled;
-                for (var i = 0, len = callbacks.length; !cancelled && i < len; i += 1) {
-                    cancelled = callbacks[i].apply(context, args) === false;
+
+            _debug.print();
+            // {/debug}
+
+        },
+
+        delegateEvents: function () {
+
+            var scope = this,
+                events = [
+                    'focus' + _namespace,
+                    'input' + _namespace,
+                    'propertychange' + _namespace,
+                    'keydown' + _namespace,
+                    'dynamic' + _namespace,
+                    'generateOnLoad' + _namespace
+                ];
+
+            this.container.off(_namespace).on("click" + _namespace + ' touchstart' + _namespace, function (e) {
+                e.stopPropagation();
+
+                if (scope.options.dropdownFilter) {
+                    scope.container
+                        .find('.' + scope.options.selector.dropdown.replace(" ", "."))
+                        .hide();
                 }
-                return !cancelled;
+            });
+
+            this.node.closest('form').on("submit", function (e) {
+
+                if (scope.options.mustSelectItem && scope.helper.isEmpty(scope.item)) {
+                    e.preventDefault();
+                    return;
+                }
+
+                scope.hideLayout();
+
+                scope.rawQuery = '';
+                scope.query = '';
+
+                if (scope.helper.executeCallback(scope.options.callback.onSubmit, [scope.node, this, scope.item, e])) {
+                    return false;
+                }
+            });
+
+            // IE8 fix
+            var preventNextEvent = false;
+
+            this.node.off(_namespace).on(events.join(' '), function (e) {
+
+                switch (e.type) {
+                    case "generateOnLoad":
+                    case "focus":
+                        if (scope.isGenerated && scope.options.searchOnFocus && scope.query.length >= scope.options.minLength) {
+                            scope.showLayout();
+                        }
+                        if (scope.isGenerated === null && !scope.options.dynamic) {
+                            scope.generateSource();
+                        }
+                        break;
+                    case "keydown":
+                        if (scope.isGenerated && scope.result.length) {
+                            if (e.keyCode && ~[13, 27, 38, 39, 40].indexOf(e.keyCode)) {
+                                preventNextEvent = true;
+                                scope.navigate(e);
+                            }
+                        }
+                        break;
+                    case "propertychange":
+                        if (preventNextEvent) {
+                            preventNextEvent = false;
+                            break;
+                        }
+                    case "input":
+                        scope.rawQuery = scope.node[0].value.toString();
+                        scope.query = scope.node[0].value.replace(/^\s+/, '').toString();
+
+                        if (scope.options.hint && scope.hint.container && scope.hint.container.val() !== '') {
+                            if (scope.hint.container.val().indexOf(scope.rawQuery) !== 0) {
+                                scope.hint.container.val('')
+                            }
+                        }
+
+                        if (scope.options.dynamic) {
+                            scope.isGenerated = null;
+                            scope.helper.typeWatch(function () {
+                                if (scope.query.length >= scope.options.minLength) {
+                                    scope.generateSource();
+                                } else {
+                                    scope.hideLayout();
+                                }
+                            }, scope.options.delay);
+                            return;
+                        }
+                    case "dynamic":
+                        if (!scope.isGenerated) {
+                            break;
+                        }
+
+                        if (scope.query.length < scope.options.minLength) {
+                            scope.hideLayout();
+                            break;
+                        }
+
+                        scope.searchResult();
+                        scope.buildLayout();
+
+                        if (scope.result.length > 0 || scope.options.emptyTemplate) {
+                            scope.showLayout();
+                        } else {
+                            scope.hideLayout();
+                        }
+                        break;
+                }
+
+            });
+
+            if (this.options.generateOnLoad) {
+                this.node.trigger('generateOnLoad' + _namespace);
             }
-        }
-        function getNextTick() {
-            var nextTickFn;
-            if (window.setImmediate) {
-                nextTickFn = function nextTickSetImmediate(fn) {
-                    setImmediate(function() {
-                        fn();
-                    });
-                };
-            } else {
-                nextTickFn = function nextTickSetTimeout(fn) {
-                    setTimeout(function() {
-                        fn();
-                    }, 0);
-                };
-            }
-            return nextTickFn;
-        }
-        function bindContext(fn, context) {
-            return fn.bind ? fn.bind(context) : function() {
-                fn.apply(context, [].slice.call(arguments, 0));
-            };
-        }
-    }();
-    var highlight = function(doc) {
-        "use strict";
-        var defaults = {
-            node: null,
-            pattern: null,
-            tagName: "strong",
-            className: null,
-            wordsOnly: false,
-            caseSensitive: false
-        };
-        return function hightlight(o) {
-            var regex;
-            o = _.mixin({}, defaults, o);
-            if (!o.node || !o.pattern) {
+
+        },
+
+        generateSource: function () {
+
+            if (this.isGenerated && !this.options.dynamic) {
                 return;
             }
-            o.pattern = _.isArray(o.pattern) ? o.pattern : [ o.pattern ];
-            regex = getRegex(o.pattern, o.caseSensitive, o.wordsOnly);
-            traverse(o.node, hightlightTextNode);
-            function hightlightTextNode(textNode) {
-                var match, patternNode, wrapperNode;
-                if (match = regex.exec(textNode.data)) {
-                    wrapperNode = doc.createElement(o.tagName);
-                    o.className && (wrapperNode.className = o.className);
-                    patternNode = textNode.splitText(match.index);
-                    patternNode.splitText(match[0].length);
-                    wrapperNode.appendChild(patternNode.cloneNode(true));
-                    textNode.parentNode.replaceChild(wrapperNode, patternNode);
+
+            this.generatedGroupCount = 0;
+            this.isGenerated = false;
+
+            if (!this.helper.isEmpty(this.xhr)) {
+                for (var i in this.xhr) {
+                    if (!this.xhr.hasOwnProperty(i)) continue;
+                    this.xhr[i].abort();
                 }
-                return !!match;
+                this.xhr = {};
             }
-            function traverse(el, hightlightTextNode) {
-                var childNode, TEXT_NODE_TYPE = 3;
-                for (var i = 0; i < el.childNodes.length; i++) {
-                    childNode = el.childNodes[i];
-                    if (childNode.nodeType === TEXT_NODE_TYPE) {
-                        i += hightlightTextNode(childNode) ? 1 : 0;
+
+            var group,
+                dataInLocalstorage,
+                isValidStorage;
+
+            for (group in this.options.source) {
+                if (!this.options.source.hasOwnProperty(group)) continue;
+
+                // Get group source from Localstorage
+                if (this.options.cache) {
+                    dataInLocalstorage = window.localStorage.getItem(this.node.selector + ":" + group);
+                    if (dataInLocalstorage) {
+                        if (this.options.compression) {
+                            dataInLocalstorage = LZString.decompressFromUTF16(dataInLocalstorage);
+                        }
+
+                        // In case the storage key:value are not readable anymore
+                        isValidStorage = false;
+                        try {
+                            dataInLocalstorage = JSON.parse(dataInLocalstorage + "");
+
+                            if (dataInLocalstorage.data && dataInLocalstorage.ttl > new Date().getTime()) {
+                                this.populateSource(dataInLocalstorage.data, group);
+                                isValidStorage = true;
+                            } else {
+                                window.localStorage.removeItem(this.node.selector + ":" + group);
+                            }
+                        } catch (error) {
+                        }
+
+                        if (isValidStorage) continue;
+                    }
+                }
+
+                // Get group source from data
+                if (this.options.source[group].data && !this.options.source[group].url) {
+
+                    this.populateSource(
+                        typeof this.options.source[group].data === "function" &&
+                            this.options.source[group].data() ||
+                            this.options.source[group].data,
+                        group
+                    );
+                    continue;
+                }
+
+                // Get group source from Ajax / JsonP
+                if (this.options.source[group].url) {
+
+                    if (!this.requests[group]) {
+                        this.requests[group] = this.generateRequestObject(group);
+                    }
+
+                }
+            }
+
+            this.handleRequests();
+
+        },
+
+        generateRequestObject: function (group) {
+
+            var xhrObject = {
+                request: {
+                    url: null,
+                    dataType: 'json'
+                },
+                extra: {
+                    path: null,
+                    group: group,
+                    callback: {
+                        done: null,
+                        fail: null,
+                        complete: null,
+                        always: null
+                    }
+                },
+                validForGroup: [group]
+            };
+
+            if (!(this.options.source[group].url instanceof Array) && this.options.source[group].url instanceof Object) {
+                this.options.source[group].url = [this.options.source[group].url];
+            }
+
+            if (this.options.source[group].url instanceof Array) {
+                if (this.options.source[group].url[0] instanceof Object) {
+
+                    if (this.options.source[group].url[0].callback) {
+                        xhrObject.extra.callback = this.options.source[group].url[0].callback;
+                        delete this.options.source[group].url[0].callback;
+                    }
+
+                    xhrObject.request = $.extend(true, xhrObject.request, this.options.source[group].url[0]);
+
+                } else if (typeof this.options.source[group].url[0] === "string") {
+                    xhrObject.request.url = this.options.source[group].url[0];
+                }
+                if (this.options.source[group].url[1] && typeof this.options.source[group].url[1] === "string") {
+                    xhrObject.extra.path = this.options.source[group].url[1];
+                }
+            } else if (typeof this.options.source[group].url === "string") {
+                xhrObject.request.url = this.options.source[group].url;
+            }
+
+            if (xhrObject.request.dataType.toLowerCase() === 'jsonp') {
+                // JSONP needs unique jsonpCallback name to run concurrently
+                xhrObject.request.jsonpCallback = 'callback_' + group;
+            }
+
+            var stringRequest;
+
+            for (var _group in this.requests) {
+                if (!this.requests.hasOwnProperty(_group)) continue;
+
+                stringRequest = JSON.stringify(this.requests[_group].request);
+
+                if (stringRequest === JSON.stringify(xhrObject.request)) {
+                    this.requests[_group].validForGroup.push(group);
+                    xhrObject.isDuplicated = true;
+                    delete xhrObject.validForGroup;
+                    break;
+                }
+            }
+
+            return xhrObject;
+
+        },
+
+        handleRequests: function () {
+
+            var scope = this,
+                requestsCount = Object.keys(this.requests).length;
+
+            if (requestsCount) {
+                this.helper.executeCallback(this.options.callback.onSendRequest, [this.node, this.query]);
+            }
+
+            for (var group in this.requests) {
+                if (!this.requests.hasOwnProperty(group)) continue;
+                if (this.requests[group].isDuplicated) continue;
+
+                (function (group, xhrObject) {
+
+                    var _request;
+
+                    if (xhrObject.request.data) {
+                        for (var i in xhrObject.request.data) {
+                            if (!xhrObject.request.data.hasOwnProperty(i)) continue;
+                            if (~String(xhrObject.request.data[i]).indexOf('{{query}}')) {
+                                // Prevent the main request from being changed
+                                xhrObject = $.extend(true, {}, xhrObject);
+                                xhrObject.request.data[i] = xhrObject.request.data[i].replace('{{query}}', scope.query);
+                                break;
+                            }
+                        }
+                    }
+
+                    scope.xhr[group] = $.ajax(xhrObject.request).done(function (data, textStatus, jqXHR) {
+
+                        var tmpData;
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+
+                            if (_request.extra.callback.done instanceof Function) {
+
+                                tmpData = _request.extra.callback.done(data, textStatus, jqXHR);
+                                data = tmpData instanceof Array && tmpData || data;
+
+                                // {debug}
+                                if (!(tmpData instanceof Array)) {
+                                    _debug.log({
+                                        'node': scope.node.selector,
+                                        'function': 'Ajax.callback.done()',
+                                        'message': 'Invalid returned data has to be an Array'
+                                    });
+                                    _debug.print();
+                                }
+                                // {/debug}
+                            }
+
+                            scope.populateSource(data, _request.extra.group, _request.extra.path);
+
+                            requestsCount -= 1;
+                            if (requestsCount === 0) {
+                                scope.helper.executeCallback(scope.options.callback.onReceiveRequest, [scope.node, scope.query]);
+                            }
+
+                        }
+
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+
+
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.fail instanceof Function && _request.extra.callback.fail(jqXHR, textStatus, errorThrown);
+                        }
+
+                        // {debug}
+                        _debug.log({
+                            'node': scope.node.selector,
+                            'function': 'Ajax.callback.fail()',
+                            'message': 'Request failed'
+                        });
+
+                        _debug.print();
+                        // {/debug}
+
+                    }).complete(function (jqXHR, textStatus) {
+
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.complete instanceof Function && _request.extra.callback.complete(jqXHR, textStatus);
+                        }
+
+                    }).always(function (data, textStatus, jqXHR) {
+
+                        for (var i = 0; i < xhrObject.validForGroup.length; i++) {
+                            _request = scope.requests[xhrObject.validForGroup[i]];
+                            _request.extra.callback.always instanceof Function && _request.extra.callback.always(data, textStatus, jqXHR);
+                        }
+
+                    });
+
+                }(group, this.requests[group]));
+
+            }
+
+        },
+
+        /**
+         * Build the source groups to be cycled for matched results
+         *
+         * @param {Array} data Array of Strings or Array of Objects
+         * @param {String} group
+         * @param {String} [path]
+         * @return {*}
+         */
+        populateSource: function (data, group, path) {
+
+            var isValid = true,
+                extraData;
+
+            if (typeof path === "string") {
+                var exploded = path.split('.'),
+                    splitIndex = 0;
+
+                while (splitIndex < exploded.length) {
+                    if (typeof data !== 'undefined') {
+                        data = data[exploded[splitIndex++]];
                     } else {
-                        traverse(childNode, hightlightTextNode);
+                        isValid = false;
+                        break;
                     }
                 }
             }
-        };
-        function getRegex(patterns, caseSensitive, wordsOnly) {
-            var escapedPatterns = [], regexStr;
-            for (var i = 0, len = patterns.length; i < len; i++) {
-                escapedPatterns.push(_.escapeRegExChars(patterns[i]));
+
+            if (!(data instanceof Array)) {
+                // {debug}
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'populateSource()',
+                    'arguments': JSON.stringify({group: group}),
+                    'message': 'Invalid data type, must be Array type.'
+                });
+                _debug.print();
+                // {/debug}
+                return;
             }
-            regexStr = wordsOnly ? "\\b(" + escapedPatterns.join("|") + ")\\b" : "(" + escapedPatterns.join("|") + ")";
-            return caseSensitive ? new RegExp(regexStr) : new RegExp(regexStr, "i");
-        }
-    }(window.document);
-    var Input = function() {
-        "use strict";
-        var specialKeyCodeMap;
-        specialKeyCodeMap = {
-            9: "tab",
-            27: "esc",
-            37: "left",
-            39: "right",
-            13: "enter",
-            38: "up",
-            40: "down"
-        };
-        function Input(o) {
-            var that = this, onBlur, onFocus, onKeydown, onInput;
-            o = o || {};
-            if (!o.input) {
-                $.error("input is missing");
+
+            if (!isValid) {
+                // {debug}
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'populateSource()',
+                    'arguments': JSON.stringify(path),
+                    'message': 'Invalid path.'
+                });
+
+                _debug.print();
+                // {/debug}
+                return;
             }
-            onBlur = _.bind(this._onBlur, this);
-            onFocus = _.bind(this._onFocus, this);
-            onKeydown = _.bind(this._onKeydown, this);
-            onInput = _.bind(this._onInput, this);
-            this.$hint = $(o.hint);
-            this.$input = $(o.input).on("blur.tt", onBlur).on("focus.tt", onFocus).on("keydown.tt", onKeydown);
-            if (this.$hint.length === 0) {
-                this.setHint = this.getHint = this.clearHint = this.clearHintIfInvalid = _.noop;
+
+            extraData = this.options.source[group].url && this.options.source[group].data;
+
+            if (extraData) {
+                if (typeof extraData === "function") {
+                    extraData = extraData();
+                }
+
+                if (extraData instanceof Array) {
+                    data = data.concat(extraData);
+                }
+                // {debug}
+                else {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'populateSource()',
+                        'arguments': JSON.stringify(extraData),
+                        'message': 'WARNING - this.options.source.' + group + '.data Must be an Array or a function that returns an Array.'
+                    });
+
+                    _debug.print();
+                }
+                // {/debug}
+
             }
-            if (!_.isMsie()) {
-                this.$input.on("input.tt", onInput);
+
+            var tmpObj,
+                display;
+
+            if (this.options.source[group].display) {
+                display = this.options.source[group].display[0];
             } else {
-                this.$input.on("keydown.tt keypress.tt cut.tt paste.tt", function($e) {
-                    if (specialKeyCodeMap[$e.which || $e.keyCode]) {
+                display = this.options.display[0];
+            }
+
+            // @TODO: possibly optimize this?
+            for (var i = 0; i < data.length; i++) {
+                if (typeof data[i] === "string") {
+                    tmpObj = {};
+                    tmpObj[display] = data[i];
+                    data[i] = tmpObj;
+                }
+            }
+
+            // @TODO: find a way to save the order from options.source so it appears correctly?
+            this.source[group] = data;
+
+            if (this.options.cache && !localStorage.getItem(this.node.selector + ":" + group)) {
+
+                var storage = JSON.stringify({
+                    data: data,
+                    ttl: new Date().getTime() + this.options.ttl
+                });
+
+                if (this.options.compression) {
+                    storage = LZString.compressToUTF16(storage);
+                }
+
+                localStorage.setItem(
+                    this.node.selector + ":" + group,
+                    storage
+                );
+            }
+
+            this.incrementGeneratedGroup();
+
+        },
+
+        incrementGeneratedGroup: function () {
+
+            this.generatedGroupCount += 1;
+
+            if (this.groupCount !== this.generatedGroupCount) {
+                return;
+            }
+
+            this.isGenerated = true;
+
+            this.node.trigger('dynamic' + _namespace);
+
+        },
+
+        /**
+         * Key Navigation
+         * Up 38: select previous item, skip "group" item
+         * Down 40: select next item, skip "group" item
+         * Right 39: change charAt, if last char fill hint (if options is true)
+         * Esc 27: hideLayout
+         * Enter 13: Select item + submit search
+         *
+         * @param {Object} e Event object
+         * @returns {*}
+         */
+        navigate: function (e) {
+
+            this.helper.executeCallback(this.options.callback.onNavigate, [this.node, this.query, e]);
+
+            var itemList = this.resultContainer.find('> ul > li:not([data-search-group])'),
+                activeItem = itemList.filter('.active'),
+                activeItemIndex = activeItem[0] && itemList.index(activeItem) || null;
+
+            if (e.keyCode === 27) {
+
+                e.preventDefault();
+                this.hideLayout();
+
+                return;
+            }
+
+            if (e.keyCode === 13) {
+
+                if (activeItem.length > 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    activeItem.find('a:first').trigger('click');
+
+                    return;
+
+                } else {
+
+                    if (this.options.mustSelectItem && this.helper.isEmpty(this.item)) {
                         return;
                     }
-                    _.defer(_.bind(that._onInput, that, $e));
-                });
+
+                    this.hideLayout();
+                    return;
+                }
             }
-            this.query = this.$input.val();
-            this.$overflowHelper = buildOverflowHelper(this.$input);
-        }
-        Input.normalizeQuery = function(str) {
-            return (str || "").replace(/^\s*/g, "").replace(/\s{2,}/g, " ");
-        };
-        _.mixin(Input.prototype, EventEmitter, {
-            _onBlur: function onBlur() {
-                this.resetInputValue();
-                this.trigger("blurred");
-            },
-            _onFocus: function onFocus() {
-                this.trigger("focused");
-            },
-            _onKeydown: function onKeydown($e) {
-                var keyName = specialKeyCodeMap[$e.which || $e.keyCode];
-                this._managePreventDefault(keyName, $e);
-                if (keyName && this._shouldTrigger(keyName, $e)) {
-                    this.trigger(keyName + "Keyed", $e);
-                }
-            },
-            _onInput: function onInput() {
-                this._checkInputValue();
-            },
-            _managePreventDefault: function managePreventDefault(keyName, $e) {
-                var preventDefault, hintValue, inputValue;
-                switch (keyName) {
-                  case "tab":
-                    hintValue = this.getHint();
-                    inputValue = this.getInputValue();
-                    preventDefault = hintValue && hintValue !== inputValue && !withModifier($e);
-                    break;
 
-                  case "up":
-                  case "down":
-                    preventDefault = !withModifier($e);
-                    break;
+            if (e.keyCode === 39) {
+                if (activeItemIndex) {
+                    itemList.eq(activeItemIndex).find('a:first').trigger('click');
+                } else if (this.options.hint &&
+                    this.hint.container.val() !== "" &&
+                    this.helper.getCaret(this.node[0]) >= this.query.length) {
 
-                  default:
-                    preventDefault = false;
-                }
-                preventDefault && $e.preventDefault();
-            },
-            _shouldTrigger: function shouldTrigger(keyName, $e) {
-                var trigger;
-                switch (keyName) {
-                  case "tab":
-                    trigger = !withModifier($e);
-                    break;
+                    itemList.find('a[data-index="' + this.hintIndex + '"]').trigger('click');
 
-                  default:
-                    trigger = true;
                 }
-                return trigger;
-            },
-            _checkInputValue: function checkInputValue() {
-                var inputValue, areEquivalent, hasDifferentWhitespace;
-                inputValue = this.getInputValue();
-                areEquivalent = areQueriesEquivalent(inputValue, this.query);
-                hasDifferentWhitespace = areEquivalent ? this.query.length !== inputValue.length : false;
-                this.query = inputValue;
-                if (!areEquivalent) {
-                    this.trigger("queryChanged", this.query);
-                } else if (hasDifferentWhitespace) {
-                    this.trigger("whitespaceChanged", this.query);
+                return;
+            }
+
+            if (itemList.length > 0) {
+                activeItem.removeClass('active');
+            }
+
+            if (e.keyCode === 38) {
+
+                e.preventDefault();
+
+                if (activeItem.length > 0) {
+                    if (activeItemIndex - 1 >= 0) {
+                        itemList.eq(activeItemIndex - 1).addClass('active');
+                    }
+                } else {
+                    itemList.last().addClass('active');
                 }
-            },
-            focus: function focus() {
-                this.$input.focus();
-            },
-            blur: function blur() {
-                this.$input.blur();
-            },
-            getQuery: function getQuery() {
-                return this.query;
-            },
-            setQuery: function setQuery(query) {
-                this.query = query;
-            },
-            getInputValue: function getInputValue() {
-                return this.$input.val();
-            },
-            setInputValue: function setInputValue(value, silent) {
-                this.$input.val(value);
-                silent ? this.clearHint() : this._checkInputValue();
-            },
-            resetInputValue: function resetInputValue() {
-                this.setInputValue(this.query, true);
-            },
-            getHint: function getHint() {
-                return this.$hint.val();
-            },
-            setHint: function setHint(value) {
-                this.$hint.val(value);
-            },
-            clearHint: function clearHint() {
-                this.setHint("");
-            },
-            clearHintIfInvalid: function clearHintIfInvalid() {
-                var val, hint, valIsPrefixOfHint, isValid;
-                val = this.getInputValue();
-                hint = this.getHint();
-                valIsPrefixOfHint = val !== hint && hint.indexOf(val) === 0;
-                isValid = val !== "" && valIsPrefixOfHint && !this.hasOverflow();
-                !isValid && this.clearHint();
-            },
-            getLanguageDirection: function getLanguageDirection() {
-                return (this.$input.css("direction") || "ltr").toLowerCase();
-            },
-            hasOverflow: function hasOverflow() {
-                var constraint = this.$input.width() - 2;
-                this.$overflowHelper.text(this.getInputValue());
-                return this.$overflowHelper.width() >= constraint;
-            },
-            isCursorAtEnd: function() {
-                var valueLength, selectionStart, range;
-                valueLength = this.$input.val().length;
-                selectionStart = this.$input[0].selectionStart;
-                if (_.isNumber(selectionStart)) {
-                    return selectionStart === valueLength;
-                } else if (document.selection) {
-                    range = document.selection.createRange();
-                    range.moveStart("character", -valueLength);
-                    return valueLength === range.text.length;
+
+            } else if (e.keyCode === 40) {
+
+                e.preventDefault();
+
+                if (activeItem.length > 0) {
+                    if (activeItemIndex + 1 < itemList.length) {
+                        itemList.eq(activeItemIndex + 1).addClass('active');
+                    }
+                } else {
+                    itemList.first().addClass('active');
                 }
+
+            }
+
+            activeItem = itemList.filter('.active');
+
+            if (this.options.hint && this.hint.container) {
+                if (activeItem.length > 0) {
+                    this.hint.container.css('color', this.hint.container.css('background-color') || 'fff');
+                } else {
+                    this.hint.container.css('color', this.hint.css.color)
+                }
+            }
+
+            if (activeItem.length > 0) {
+
+                var itemIndex = activeItem.find('a:first').attr('data-index');
+
+                itemIndex && this.node.val(this.result[itemIndex][this.result[itemIndex].matchedKey]);
+
+            } else {
+                this.node.val(this.rawQuery);
+            }
+
+        },
+
+        // @TODO implement dynamicFilter
+        searchResult: function () {
+
+            this.item = {};
+
+            this.helper.executeCallback(this.options.callback.onSearch, [this.node, this.query]);
+
+            this.result = [];
+            this.resultCount = 0;
+
+            var scope = this,
+                group,
+                item,
+                match,
+                comparedDisplay,
+                comparedQuery = this.query,
+                itemPerGroup = {},
+                groupBy = this.filters.dropdown && this.filters.dropdown.key || this.groupBy,
+                displayKeys,
+                missingDisplayKey = {},
+                filter;
+
+            if (this.options.accent) {
+                comparedQuery = this.helper.removeAccent(comparedQuery);
+            }
+
+            for (group in this.source) {
+                if (!this.source.hasOwnProperty(group)) continue;
+                if (this.filters.dropdown && this.filters.dropdown.key === "group" && this.filters.dropdown.value !== group) continue; // @TODO, verify this
+
+                if (this.options.maxItemPerGroup && groupBy === "group") {
+                    if (!itemPerGroup[group]) {
+                        itemPerGroup[group] = 0;
+                    } else if (itemPerGroup[group] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
+                        break;
+                    }
+                }
+
+                filter = typeof this.options.source[group].filter === "undefined" || this.options.source[group].filter === true;
+
+                for (var k = 0; k < this.source[group].length; k++) {
+                    if (this.result.length >= this.options.maxItem && !this.options.callback.onResult) break;
+
+                    item = this.source[group][k];
+                    item.group = group;
+
+                    if (this.options.maxItemPerGroup && groupBy !== "group") {
+                        if (!itemPerGroup[item[groupBy]]) {
+                            itemPerGroup[item[groupBy]] = 0;
+                        } else if (itemPerGroup[item[groupBy]] >= this.options.maxItemPerGroup && !this.options.callback.onResult) {
+                            continue;
+                        }
+                    }
+
+                    displayKeys = this.options.source[group].display || this.options.display;
+
+                    for (var i = 0; i < displayKeys.length; i++) {
+
+                        if (filter) {
+                            comparedDisplay = item[displayKeys[i]];
+
+                            if (!comparedDisplay) {
+                                // {debug}
+                                missingDisplayKey[i] = {
+                                    display: displayKeys[i],
+                                    data: item
+                                };
+                                // {/debug}
+                                continue;
+                            }
+
+                            comparedDisplay = comparedDisplay.toString();
+
+                            if (this.options.accent) {
+                                comparedDisplay = this.helper.removeAccent(comparedDisplay);
+                            }
+
+                            match = comparedDisplay.toLowerCase().indexOf(comparedQuery.toLowerCase()) + 1;
+
+                            if (!match) continue;
+                            if (match && this.options.offset && match !== 1) continue;
+                            if (this.options.source[group].ignore && this.options.source[group].ignore.test(comparedDisplay)) continue;
+                        }
+
+                        if (this.filters.dropdown) {
+                            if (this.filters.dropdown.value != item[this.filters.dropdown.key]) continue;
+                        }
+
+                        this.resultCount += 1;
+
+                        if ((this.options.callback.onResult && this.result.length >= this.options.maxItem) ||
+                            this.options.maxItemPerGroup && itemPerGroup[item[groupBy]] >= this.options.maxItemPerGrou
+                            ) {
+                            break;
+                        }
+
+                        item.matchedKey = displayKeys[i];
+
+                        this.result.push(item);
+
+                        if (this.options.maxItemPerGroup) {
+                            itemPerGroup[item[groupBy]] += 1;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            // {debug}
+            if (!this.helper.isEmpty(missingDisplayKey)) {
+                _debug.log({
+                    'node': this.node.selector,
+                    'function': 'searchResult()',
+                    'arguments': JSON.stringify(missingDisplayKey),
+                    'message': 'Missing keys for display, make sure options.display is set properly.'
+                });
+
+                _debug.print();
+            }
+            // {/debug}
+
+            if (this.options.order) {
+
+                var displayKeys = [],
+                    displayKey;
+
+                for (var i = 0; i < this.result.length; i++) {
+                    displayKey = this.options.source[this.result[i].group].display || this.options.display;
+                    if (!~displayKeys.indexOf(displayKey[0])) {
+                        displayKeys.push(displayKey[0]);
+                    }
+                }
+
+                this.result.sort(
+                    scope.helper.sort(
+                        displayKeys,
+                        scope.options.order === "asc",
+                        function (a) {
+                            return a.toString().toUpperCase()
+                        }
+                    )
+                );
+            }
+
+            this.helper.executeCallback(this.options.callback.onResult, [this.node, this.query, this.result, this.resultCount]);
+
+        },
+
+        buildLayout: function () {
+
+            if (!this.resultContainer) {
+                this.resultContainer = $("<div/>", {
+                    "class": this.options.selector.result
+                });
+
+                this.container.append(this.resultContainer);
+            }
+
+            // Reused..
+            var _query = this.query.toLowerCase();
+            if (this.options.accent) {
+                _query = this.helper.removeAccent(_query);
+            }
+
+            var scope = this,
+                resultHtmlList = $("<ul/>", {
+                    "class": this.options.selector.list + (scope.helper.isEmpty(scope.result) ? ' empty' : ''),
+                    "html": function () {
+
+                        if (scope.options.emptyTemplate && scope.helper.isEmpty(scope.result)) {
+                            return $("<li/>", {
+                                "html": $("<a/>", {
+                                    "href": "javascript:;",
+                                    "html": typeof scope.options.emptyTemplate === "function" && scope.options.emptyTemplate(scope.query) || scope.options.emptyTemplate.replace(/\{\{query}}/gi, scope.query)
+                                })
+                            });
+                        }
+
+                        for (var i in scope.result) {
+                            if (!scope.result.hasOwnProperty(i)) continue;
+
+                            (function (index, item, ulScope) {
+
+                                var _group = item.group,
+                                    _liHtml,
+                                    _aHtml,
+                                    _display = {},
+                                    _displayKeys = scope.options.source[item.group].display || scope.options.display,
+                                    _href = scope.options.source[item.group].href || scope.options.href,
+                                    _displayKey,
+                                    _handle,
+                                    _template;
+
+                                if (scope.options.group) {
+                                    if (typeof scope.options.group[0] !== "boolean" && item[scope.options.group[0]]) {
+                                        _group = item[scope.options.group[0]];
+                                    }
+                                    if (!$(ulScope).find('li[data-search-group="' + _group + '"]')[0]) {
+                                        $(ulScope).append(
+                                            $("<li/>", {
+                                                "class": scope.options.selector.group,
+                                                "html": $("<a/>", {
+                                                    "href": "javascript:;",
+                                                    "html": scope.options.group[1] && scope.options.group[1].replace(/(\{\{group}})/gi, item[scope.options.group[0]] || _group) || _group
+                                                }),
+                                                "data-search-group": _group
+                                            })
+                                        );
+                                    }
+                                }
+
+                                for (var i = 0; i < _displayKeys.length; i++) {
+                                    _displayKey = _displayKeys[i];
+                                    _display[_displayKey] = item[_displayKey];
+                                    if (scope.options.highlight) {
+                                        if (_display[_displayKey]) {
+                                            _display[_displayKey] = scope.helper.highlight(_display[_displayKey], _query, scope.options.accent);
+                                        }
+                                        // {debug}
+                                        else {
+
+                                            _debug.log({
+                                                'node': scope.node.selector,
+                                                'function': 'buildLayout()',
+                                                'arguments': JSON.stringify(item),
+                                                'message': 'WARNING - Missing display key: "' + _displayKey + '"'
+                                            });
+
+                                            _debug.print();
+
+                                        }
+                                        // {/debug}
+                                    }
+                                }
+
+                                _liHtml = $("<li/>", {
+                                    "html": $("<a/>", {
+                                        "href": function () {
+
+                                            if (_href) {
+                                                if (typeof _href === "string") {
+                                                    _href = _href.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
+
+                                                        var value = scope.helper.getObjectRecursionProperty(item, index) || match;
+                                                        if (option && option === "raw") {
+                                                            return value;
+                                                        }
+                                                        return value !== match && scope.helper.slugify(value) || value;
+
+                                                    });
+                                                } else if (typeof _href === "function") {
+                                                    _href = _href(item);
+                                                }
+                                                item['href'] = _href;
+                                            }
+
+                                            return _href || "javascript:;";
+
+                                        },
+                                        "data-group": _group,
+                                        "data-index": index,
+                                        "html": function () {
+
+                                            _template = (item.group && scope.options.source[item.group].template) || scope.options.template;
+
+                                            if (_template) {
+                                                _aHtml = _template.replace(/\{\{([a-z0-9_\-\.]+)\|?(\w+)?}}/gi, function (match, index, option) {
+
+                                                    var value = scope.helper.getObjectRecursionProperty(item, index) || match;
+                                                    if (option && option === "raw") {
+                                                        return value;
+                                                    }
+                                                    return scope.helper.getObjectRecursionProperty(_display, index) || value;
+                                                });
+                                            } else {
+                                                _aHtml = '<span class="' + scope.options.selector.display + '">' + scope.helper.joinObject(_display, " ") + '</span>';
+                                            }
+
+                                            $(this).append(_aHtml);
+
+                                        },
+                                        "click": ({"item": item}, function (e) {
+
+                                            if (scope.options.mustSelectItem && scope.helper.isEmpty(item)) {
+                                                e.preventDefault();
+                                                return;
+                                            }
+
+                                            scope.helper.executeCallback(scope.options.callback.onClickBefore, [scope.node, this, item, e]);
+
+                                            if (e.isDefaultPrevented()) {
+                                                return;
+                                            }
+
+                                            e.preventDefault();
+
+                                            scope.query = scope.rawQuery = item[item.matchedKey].toString();
+                                            scope.node.val(scope.query).focus();
+
+                                            scope.searchResult();
+                                            scope.buildLayout();
+                                            scope.hideLayout();
+
+                                            scope.item = item;
+
+                                            scope.helper.executeCallback(scope.options.callback.onClickAfter, [scope.node, this, item, e]);
+
+                                        }),
+                                        "mouseenter": function (e) {
+
+                                            $(this).closest('ul').find('li.active').removeClass('active');
+                                            $(this).closest('li').addClass('active');
+
+                                            scope.helper.executeCallback(scope.options.callback.onMouseEnter, [scope.node, this, item, e]);
+                                        },
+                                        "mouseleave": function (e) {
+
+                                            $(this).closest('li').removeClass('active');
+
+                                            scope.helper.executeCallback(scope.options.callback.onMouseLeave, [scope.node, this, item, e]);
+                                        }
+                                    })
+                                });
+
+                                if (scope.options.group) {
+
+                                    _handle = $(ulScope).find('a[data-group="' + _group + '"]:last').closest('li');
+                                    if (!_handle[0]) {
+                                        _handle = $(ulScope).find('li[data-search-group="' + _group + '"]');
+                                    }
+                                    $(_liHtml).insertAfter(_handle);
+
+                                } else {
+                                    $(ulScope).append(_liHtml);
+                                }
+
+                            }(i, scope.result[i], this));
+                        }
+
+                    }
+                });
+
+            if (this.options.callback.onLayoutBuiltBefore) {
+                var tmpResultHtmlList = this.helper.executeCallback(this.options.callback.onLayoutBuiltBefore, [this.node, this.query, this.result, resultHtmlList]);
+
+                if (tmpResultHtmlList instanceof jQuery) {
+                    resultHtmlList = tmpResultHtmlList;
+                }
+                // {debug}
+                else {
+                    _debug.log({
+                        'node': this.node.selector,
+                        'function': 'callback.onLayoutBuiltBefore()',
+                        'message': 'Invalid returned value - You must return resultHtmlList jQuery Object'
+                    });
+
+                    _debug.print();
+                }
+                // {/debug}
+            }
+
+            this.container.addClass('result');
+
+            this.resultContainer
+                .html(resultHtmlList);
+
+            if (this.options.callback.onLayoutBuiltAfter) {
+                this.helper.executeCallback(this.options.callback.onLayoutBuiltAfter, [this.node, this.query, this.result]);
+            }
+
+            if (this.options.backdrop) {
+
+                if (this.backdrop.container) {
+                    this.backdrop.container.show();
+                } else {
+                    this.backdrop.css = $.extend(
+                        {
+                            "opacity": 0.6,
+                            "filter": 'alpha(opacity=60)',
+                            "position": 'fixed',
+                            "top": 0,
+                            "right": 0,
+                            "bottom": 0,
+                            "left": 0,
+                            "z-index": 1040,
+                            "background-color": "#000"
+                        },
+                        this.options.backdrop
+                    );
+
+                    this.backdrop.container = $("<div/>", {
+                        "class": this.options.selector.backdrop,
+                        "css": this.backdrop.css,
+                        "click": function () {
+                            scope.hideLayout();
+                        }
+                    }).insertAfter(this.container);
+
+                }
+                this.container
+                    .addClass('backdrop')
+                    .css({
+                        "z-index": this.backdrop.css["z-index"] + 1,
+                        "position": "relative"
+                    });
+
+            }
+
+            if (this.options.hint) {
+
+                var _hint = "";
+
+                if (this.result.length > 0 && this.query.length > 0) {
+
+                    if (!this.hint.container) {
+
+                        this.hint.css = $.extend({
+                                "border-color": "transparent",
+                                "position": "absolute",
+                                "top": 0,
+                                "display": "inline",
+                                "z-index": -1,
+                                "float": "none",
+                                "color": "silver",
+                                "box-shadow": "none",
+                                "cursor": "default",
+                                "-webkit-user-select": "none",
+                                "-khtml-user-select": "none",
+                                "-moz-user-select": "none",
+                                "-ms-user-select": "none",
+                                "user-select": "none"
+                            },
+                            this.options.hint
+                        );
+
+                        this.hint.container = $('<input/>', {
+                            'type': this.node.attr('type'),
+                            'class': this.node.attr('class'),
+                            'readonly': true,
+                            'unselectable': 'on',
+                            'tabindex': -1,
+                            'click': function () {
+                                // IE8 Fix
+                                scope.node.focus();
+                            }
+                        }).addClass(_options.selector.hint)
+                            .css(this.hint.css)
+                            .insertAfter(this.node)
+
+                        this.node.parent().css({
+                            "position": "relative"
+                        });
+                    }
+
+                    this.hint.container.css('color', this.hint.css.color)
+
+                    var _displayKeys,
+                        _group,
+                        _comparedValue;
+
+                    this.hintIndex = null;
+
+                    for (var i = 0; i < this.result.length; i++) {
+                        _group = this.result[i].group;
+                        _displayKeys = scope.options.source[_group].display || scope.options.display;
+
+                        for (var k = 0; k < _displayKeys.length; k++) {
+
+                            _comparedValue = String(this.result[i][_displayKeys[k]]).toLowerCase();
+                            if (this.options.accent) {
+                                _comparedValue = this.helper.removeAccent(_comparedValue);
+                            }
+
+                            if (_comparedValue.indexOf(_query) === 0) {
+                                _hint = String(this.result[i][_displayKeys[k]]);
+                                this.hintIndex = i;
+                                break;
+                            }
+                        }
+                        if (this.hintIndex !== null) {
+                            break;
+                        }
+                    }
+                }
+
+                if (this.hint.container) {
+                    this.hint.container
+                        .val(_hint.length > 0 && this.rawQuery + _hint.substring(this.query.length) || "")
+                        .show();
+                }
+            }
+        },
+
+        buildDropdownLayout: function () {
+
+            if (!this.options.dropdownFilter) {
+                return;
+            }
+
+            //var dropdownNamespace = _namespace + '.dropdown';
+            var scope = this,
+                defaultText;
+
+            if (typeof this.options.dropdownFilter === "boolean") {
+                defaultText = "all";
+            } else if (typeof this.options.dropdownFilter === "string") {
+                defaultText = this.options.dropdownFilter
+            } else if (this.options.dropdownFilter instanceof Array) {
+                for (var i = 0; i < this.options.dropdownFilter.length; i++) {
+                    if (this.options.dropdownFilter[i].value === "*" && this.options.dropdownFilter[i].display) {
+                        defaultText = this.options.dropdownFilter[i].display;
+                        break;
+                    }
+                }
+            }
+
+            $('<span/>', {
+                "class": this.options.selector.filter,
+                "html": function () {
+
+                    $(this).append(
+                        $('<button/>', {
+                            "type": "button",
+                            "class": scope.options.selector.filterButton,
+                            "html": "<span class='" + scope.options.selector.filterValue + "'>" + defaultText + "</span> <span class='" + scope.options.selector.dropdownCarret + "'></span>",
+                            "click": function (e) {
+
+                                e.stopPropagation();
+
+                                var filterContainer = scope.container.find('.' + scope.options.selector.dropdown.replace(" ", "."));
+
+                                if (!filterContainer.is(':visible')) {
+                                    scope.container.addClass('filter');
+                                    filterContainer.show();
+
+                                    $('html').off(_namespace + ".dropdownFilter")
+                                        .on("click" + _namespace + ".dropdownFilter" + ' touchstart' + _namespace + ".dropdownFilter", function () {
+                                            scope.container.removeClass('filter');
+                                            filterContainer.hide();
+                                            $(this).off(_namespace + ".dropdownFilter");
+                                        });
+
+                                } else {
+                                    scope.container.removeClass('filter');
+                                    filterContainer.hide();
+
+                                    $('html').off(_namespace + ".dropdownFilter");
+                                }
+
+                            }
+                        })
+                    );
+
+                    $(this).append(
+                        $('<ul/>', {
+                            "class": scope.options.selector.dropdown,
+                            "html": function () {
+
+                                var items = scope.options.dropdownFilter;
+
+                                if (~['string', 'boolean'].indexOf(typeof scope.options.dropdownFilter)) {
+
+                                    items = [];
+                                    for (var group in scope.options.source) {
+                                        if (!scope.options.source.hasOwnProperty(group)) continue;
+                                        items.push({
+                                            key: 'group',
+                                            value: group
+                                        });
+                                    }
+
+                                    items.push({
+                                        key: 'group',
+                                        value: '*',
+                                        display: typeof scope.options.dropdownFilter === "string" && scope.options.dropdownFilter || 'All'
+                                    });
+                                }
+
+                                for (var i = 0; i < items.length; i++) {
+
+                                    (function (i, item, ulScope) {
+
+                                        if ((!item.key && item.value !== "*") || !item.value) {
+
+                                            // {debug}
+                                            _debug.log({
+                                                'node': scope.node.selector,
+                                                'function': 'buildDropdownLayout()',
+                                                'arguments': JSON.stringify(item),
+                                                'message': 'WARNING - Missing key or value, skipping dropdown filter."'
+                                            });
+
+                                            _debug.print();
+                                            // {/debug}
+
+                                            return;
+                                        }
+
+                                        if (item.value === '*') {
+                                            $(ulScope).append(
+                                                $("<li/>", {
+                                                    "class": "divider"
+                                                })
+                                            );
+                                        }
+
+                                        $(ulScope).append(
+                                            $("<li/>", {
+                                                "html": $("<a/>", {
+                                                    "href": "javascript:;",
+                                                    "html": item.display || item.value,
+                                                    "click": ({"item": item}, function (e) {
+                                                        e.preventDefault();
+                                                        _selectFilter.apply(scope, [item]);
+                                                    })
+                                                })
+                                            })
+                                        );
+
+                                    }(i, items[i], this));
+
+                                }
+                            }
+                        })
+                    );
+                }
+            }).insertAfter(scope.container.find('.' + scope.options.selector.query));
+
+            /**
+             * @private
+             * Select the filter and rebuild the result group
+             *
+             * @param {string} item
+             */
+            function _selectFilter(item) {
+
+                if (item.value === "*") {
+                    delete this.filters.dropdown;
+                } else {
+                    this.filters.dropdown = item;
+                }
+
+                this.container
+                    .removeClass('filter')
+                    .find('.' + this.options.selector.filterValue)
+                    .html(item.display || item.value);
+
+                this.node.trigger('dynamic' + _namespace);
+
+                this.node.focus();
+
+            }
+
+        },
+
+        showLayout: function () {
+
+            var scope = this;
+
+            $('html').off(_namespace).on("click" + _namespace + " touchstart" + _namespace, function () {
+                scope.hideLayout();
+                $(this).off(_namespace);
+            });
+
+            // Do not add display classes if there are no results
+            if (!this.result.length && !this.options.emptyTemplate) {
+                return;
+            }
+
+            this.container.addClass('result hint backdrop');
+
+        },
+
+        hideLayout: function () {
+
+            this.container.removeClass('result hint backdrop filter');
+
+        },
+
+        __construct: function () {
+            this.extendOptions();
+
+            if (!this.unifySourceFormat()) {
+                return;
+            }
+
+            this.init();
+            this.delegateEvents();
+            this.buildDropdownLayout();
+
+            this.helper.executeCallback(this.options.callback.onReady, [this.node]);
+        },
+
+        helper: {
+
+            isEmpty: function (obj) {
+                for (var prop in obj) {
+                    if (obj.hasOwnProperty(prop))
+                        return false;
+                }
+
                 return true;
             },
-            destroy: function destroy() {
-                this.$hint.off(".tt");
-                this.$input.off(".tt");
-                this.$hint = this.$input = this.$overflowHelper = null;
-            }
-        });
-        return Input;
-        function buildOverflowHelper($input) {
-            return $('<pre aria-hidden="true"></pre>').css({
-                position: "absolute",
-                visibility: "hidden",
-                whiteSpace: "pre",
-                fontFamily: $input.css("font-family"),
-                fontSize: $input.css("font-size"),
-                fontStyle: $input.css("font-style"),
-                fontVariant: $input.css("font-variant"),
-                fontWeight: $input.css("font-weight"),
-                wordSpacing: $input.css("word-spacing"),
-                letterSpacing: $input.css("letter-spacing"),
-                textIndent: $input.css("text-indent"),
-                textRendering: $input.css("text-rendering"),
-                textTransform: $input.css("text-transform")
-            }).insertAfter($input);
-        }
-        function areQueriesEquivalent(a, b) {
-            return Input.normalizeQuery(a) === Input.normalizeQuery(b);
-        }
-        function withModifier($e) {
-            return $e.altKey || $e.ctrlKey || $e.metaKey || $e.shiftKey;
-        }
-    }();
-    var Dataset = function() {
-        "use strict";
-        var datasetKey = "ttDataset", valueKey = "ttValue", datumKey = "ttDatum";
-        function Dataset(o) {
-            o = o || {};
-            o.templates = o.templates || {};
-            if (!o.source) {
-                $.error("missing source");
-            }
-            if (o.name && !isValidName(o.name)) {
-                $.error("invalid dataset name: " + o.name);
-            }
-            this.query = null;
-            this.highlight = !!o.highlight;
-            this.name = o.name || _.getUniqueId();
-            this.source = o.source;
-            this.displayFn = getDisplayFn(o.display || o.displayKey);
-            this.templates = getTemplates(o.templates, this.displayFn);
-            this.$el = $(html.dataset.replace("%CLASS%", this.name));
-        }
-        Dataset.extractDatasetName = function extractDatasetName(el) {
-            return $(el).data(datasetKey);
-        };
-        Dataset.extractValue = function extractDatum(el) {
-            return $(el).data(valueKey);
-        };
-        Dataset.extractDatum = function extractDatum(el) {
-            return $(el).data(datumKey);
-        };
-        _.mixin(Dataset.prototype, EventEmitter, {
-            _render: function render(query, suggestions) {
-                if (!this.$el) {
+
+            /**
+             * Remove every accent(s) from a string
+             *
+             * @param {String} string
+             * @returns {*}
+             */
+            removeAccent: function (string) {
+
+                if (typeof string !== "string") {
                     return;
                 }
-                var that = this, hasSuggestions;
-                this.$el.empty();
-                hasSuggestions = suggestions && suggestions.length;
-                if (!hasSuggestions && this.templates.empty) {
-                    this.$el.html(getEmptyHtml()).prepend(that.templates.header ? getHeaderHtml() : null).append(that.templates.footer ? getFooterHtml() : null);
-                } else if (hasSuggestions) {
-                    this.$el.html(getSuggestionsHtml()).prepend(that.templates.header ? getHeaderHtml() : null).append(that.templates.footer ? getFooterHtml() : null);
-                }
-                this.trigger("rendered");
-                function getEmptyHtml() {
-                    return that.templates.empty({
-                        query: query,
-                        isEmpty: true
-                    });
-                }
-                function getSuggestionsHtml() {
-                    var $suggestions, nodes;
-                    $suggestions = $(html.suggestions).css(css.suggestions);
-                    nodes = _.map(suggestions, getSuggestionNode);
-                    $suggestions.append.apply($suggestions, nodes);
-                    that.highlight && highlight({
-                        className: "tt-highlight",
-                        node: $suggestions[0],
-                        pattern: query
-                    });
-                    return $suggestions;
-                    function getSuggestionNode(suggestion) {
-                        var $el;
-                        $el = $(html.suggestion).append(that.templates.suggestion(suggestion)).data(datasetKey, that.name).data(valueKey, that.displayFn(suggestion)).data(datumKey, suggestion);
-                        $el.children().each(function() {
-                            $(this).css(css.suggestionChild);
-                        });
-                        return $el;
-                    }
-                }
-                function getHeaderHtml() {
-                    return that.templates.header({
-                        query: query,
-                        isEmpty: !hasSuggestions
-                    });
-                }
-                function getFooterHtml() {
-                    return that.templates.footer({
-                        query: query,
-                        isEmpty: !hasSuggestions
-                    });
-                }
-            },
-            getRoot: function getRoot() {
-                return this.$el;
-            },
-            update: function update(query) {
-                var that = this;
-                this.query = query;
-                this.canceled = false;
-                this.source(query, render);
-                function render(suggestions) {
-                    if (!that.canceled && query === that.query) {
-                        that._render(query, suggestions);
-                    }
-                }
-            },
-            cancel: function cancel() {
-                this.canceled = true;
-            },
-            clear: function clear() {
-                this.cancel();
-                this.$el.empty();
-                this.trigger("rendered");
-            },
-            isEmpty: function isEmpty() {
-                return this.$el.is(":empty");
-            },
-            destroy: function destroy() {
-                this.$el = null;
-            }
-        });
-        return Dataset;
-        function getDisplayFn(display) {
-            display = display || "value";
-            return _.isFunction(display) ? display : displayFn;
-            function displayFn(obj) {
-                return obj[display];
-            }
-        }
-        function getTemplates(templates, displayFn) {
-            return {
-                empty: templates.empty && _.templatify(templates.empty),
-                header: templates.header && _.templatify(templates.header),
-                footer: templates.footer && _.templatify(templates.footer),
-                suggestion: templates.suggestion || suggestionTemplate
-            };
-            function suggestionTemplate(context) {
-                return "<p>" + displayFn(context) + "</p>";
-            }
-        }
-        function isValidName(str) {
-            return /^[_a-zA-Z0-9-]+$/.test(str);
-        }
-    }();
-    var Dropdown = function() {
-        "use strict";
-        function Dropdown(o) {
-            var that = this, onSuggestionClick, onSuggestionMouseEnter, onSuggestionMouseLeave;
-            o = o || {};
-            if (!o.menu) {
-                $.error("menu is required");
-            }
-            this.isOpen = false;
-            this.isEmpty = true;
-            this.datasets = _.map(o.datasets, initializeDataset);
-            onSuggestionClick = _.bind(this._onSuggestionClick, this);
-            onSuggestionMouseEnter = _.bind(this._onSuggestionMouseEnter, this);
-            onSuggestionMouseLeave = _.bind(this._onSuggestionMouseLeave, this);
-            this.$menu = $(o.menu).on("click.tt", ".tt-suggestion", onSuggestionClick).on("mouseenter.tt", ".tt-suggestion", onSuggestionMouseEnter).on("mouseleave.tt", ".tt-suggestion", onSuggestionMouseLeave);
-            _.each(this.datasets, function(dataset) {
-                that.$menu.append(dataset.getRoot());
-                dataset.onSync("rendered", that._onRendered, that);
-            });
-        }
-        _.mixin(Dropdown.prototype, EventEmitter, {
-            _onSuggestionClick: function onSuggestionClick($e) {
-                this.trigger("suggestionClicked", $($e.currentTarget));
-            },
-            _onSuggestionMouseEnter: function onSuggestionMouseEnter($e) {
-                this._removeCursor();
-                this._setCursor($($e.currentTarget), true);
-            },
-            _onSuggestionMouseLeave: function onSuggestionMouseLeave() {
-                this._removeCursor();
-            },
-            _onRendered: function onRendered() {
-                this.isEmpty = _.every(this.datasets, isDatasetEmpty);
-                this.isEmpty ? this._hide() : this.isOpen && this._show();
-                this.trigger("datasetRendered");
-                function isDatasetEmpty(dataset) {
-                    return dataset.isEmpty();
-                }
-            },
-            _hide: function() {
-                this.$menu.hide();
-            },
-            _show: function() {
-                this.$menu.css("display", "block");
-            },
-            _getSuggestions: function getSuggestions() {
-                return this.$menu.find(".tt-suggestion");
-            },
-            _getCursor: function getCursor() {
-                return this.$menu.find(".tt-cursor").first();
-            },
-            _setCursor: function setCursor($el, silent) {
-                $el.first().addClass("tt-cursor");
-                !silent && this.trigger("cursorMoved");
-            },
-            _removeCursor: function removeCursor() {
-                this._getCursor().removeClass("tt-cursor");
-            },
-            _moveCursor: function moveCursor(increment) {
-                var $suggestions, $oldCursor, newCursorIndex, $newCursor;
-                if (!this.isOpen) {
-                    return;
-                }
-                $oldCursor = this._getCursor();
-                $suggestions = this._getSuggestions();
-                this._removeCursor();
-                newCursorIndex = $suggestions.index($oldCursor) + increment;
-                newCursorIndex = (newCursorIndex + 1) % ($suggestions.length + 1) - 1;
-                if (newCursorIndex === -1) {
-                    this.trigger("cursorRemoved");
-                    return;
-                } else if (newCursorIndex < -1) {
-                    newCursorIndex = $suggestions.length - 1;
-                }
-                this._setCursor($newCursor = $suggestions.eq(newCursorIndex));
-                this._ensureVisible($newCursor);
-            },
-            _ensureVisible: function ensureVisible($el) {
-                var elTop, elBottom, menuScrollTop, menuHeight;
-                elTop = $el.position().top;
-                elBottom = elTop + $el.outerHeight(true);
-                menuScrollTop = this.$menu.scrollTop();
-                menuHeight = this.$menu.height() + parseInt(this.$menu.css("paddingTop"), 10) + parseInt(this.$menu.css("paddingBottom"), 10);
-                if (elTop < 0) {
-                    this.$menu.scrollTop(menuScrollTop + elTop);
-                } else if (menuHeight < elBottom) {
-                    this.$menu.scrollTop(menuScrollTop + (elBottom - menuHeight));
-                }
-            },
-            close: function close() {
-                if (this.isOpen) {
-                    this.isOpen = false;
-                    this._removeCursor();
-                    this._hide();
-                    this.trigger("closed");
-                }
-            },
-            open: function open() {
-                if (!this.isOpen) {
-                    this.isOpen = true;
-                    !this.isEmpty && this._show();
-                    this.trigger("opened");
-                }
-            },
-            setLanguageDirection: function setLanguageDirection(dir) {
-                this.$menu.css(dir === "ltr" ? css.ltr : css.rtl);
-            },
-            moveCursorUp: function moveCursorUp() {
-                this._moveCursor(-1);
-            },
-            moveCursorDown: function moveCursorDown() {
-                this._moveCursor(+1);
-            },
-            getDatumForSuggestion: function getDatumForSuggestion($el) {
-                var datum = null;
-                if ($el.length) {
-                    datum = {
-                        raw: Dataset.extractDatum($el),
-                        value: Dataset.extractValue($el),
-                        datasetName: Dataset.extractDatasetName($el)
-                    };
-                }
-                return datum;
-            },
-            getDatumForCursor: function getDatumForCursor() {
-                return this.getDatumForSuggestion(this._getCursor().first());
-            },
-            getDatumForTopSuggestion: function getDatumForTopSuggestion() {
-                return this.getDatumForSuggestion(this._getSuggestions().first());
-            },
-            update: function update(query) {
-                _.each(this.datasets, updateDataset);
-                function updateDataset(dataset) {
-                    dataset.update(query);
-                }
-            },
-            empty: function empty() {
-                _.each(this.datasets, clearDataset);
-                this.isEmpty = true;
-                function clearDataset(dataset) {
-                    dataset.clear();
-                }
-            },
-            isVisible: function isVisible() {
-                return this.isOpen && !this.isEmpty;
-            },
-            destroy: function destroy() {
-                this.$menu.off(".tt");
-                this.$menu = null;
-                _.each(this.datasets, destroyDataset);
-                function destroyDataset(dataset) {
-                    dataset.destroy();
-                }
-            }
-        });
-        return Dropdown;
-        function initializeDataset(oDataset) {
-            return new Dataset(oDataset);
-        }
-    }();
-    var Typeahead = function() {
-        "use strict";
-        var attrsKey = "ttAttrs";
-        function Typeahead(o) {
-            var $menu, $input, $hint;
-            o = o || {};
-            if (!o.input) {
-                $.error("missing input");
-            }
-            this.isActivated = false;
-            this.autoselect = !!o.autoselect;
-            this.minLength = _.isNumber(o.minLength) ? o.minLength : 1;
-            this.$node = buildDom(o.input, o.withHint);
-            $menu = this.$node.find(".tt-dropdown-menu");
-            $input = this.$node.find(".tt-input");
-            $hint = this.$node.find(".tt-hint");
-            $input.on("blur.tt", function($e) {
-                var active, isActive, hasActive;
-                active = document.activeElement;
-                isActive = $menu.is(active);
-                hasActive = $menu.has(active).length > 0;
-                if (_.isMsie() && (isActive || hasActive)) {
-                    $e.preventDefault();
-                    $e.stopImmediatePropagation();
-                    _.defer(function() {
-                        $input.focus();
-                    });
-                }
-            });
-            $menu.on("mousedown.tt", function($e) {
-                $e.preventDefault();
-            });
-            this.eventBus = o.eventBus || new EventBus({
-                el: $input
-            });
-            this.dropdown = new Dropdown({
-                menu: $menu,
-                datasets: o.datasets
-            }).onSync("suggestionClicked", this._onSuggestionClicked, this).onSync("cursorMoved", this._onCursorMoved, this).onSync("cursorRemoved", this._onCursorRemoved, this).onSync("opened", this._onOpened, this).onSync("closed", this._onClosed, this).onAsync("datasetRendered", this._onDatasetRendered, this);
-            this.input = new Input({
-                input: $input,
-                hint: $hint
-            }).onSync("focused", this._onFocused, this).onSync("blurred", this._onBlurred, this).onSync("enterKeyed", this._onEnterKeyed, this).onSync("tabKeyed", this._onTabKeyed, this).onSync("escKeyed", this._onEscKeyed, this).onSync("upKeyed", this._onUpKeyed, this).onSync("downKeyed", this._onDownKeyed, this).onSync("leftKeyed", this._onLeftKeyed, this).onSync("rightKeyed", this._onRightKeyed, this).onSync("queryChanged", this._onQueryChanged, this).onSync("whitespaceChanged", this._onWhitespaceChanged, this);
-            this._setLanguageDirection();
-        }
-        _.mixin(Typeahead.prototype, {
-            _onSuggestionClicked: function onSuggestionClicked(type, $el) {
-                var datum;
-                if (datum = this.dropdown.getDatumForSuggestion($el)) {
-                    this._select(datum);
-                }
-            },
-            _onCursorMoved: function onCursorMoved() {
-                var datum = this.dropdown.getDatumForCursor();
-                this.input.setInputValue(datum.value, true);
-                this.eventBus.trigger("cursorchanged", datum.raw, datum.datasetName);
-            },
-            _onCursorRemoved: function onCursorRemoved() {
-                this.input.resetInputValue();
-                this._updateHint();
-            },
-            _onDatasetRendered: function onDatasetRendered() {
-                this._updateHint();
-            },
-            _onOpened: function onOpened() {
-                this._updateHint();
-                this.eventBus.trigger("opened");
-            },
-            _onClosed: function onClosed() {
-                this.input.clearHint();
-                this.eventBus.trigger("closed");
-            },
-            _onFocused: function onFocused() {
-                this.isActivated = true;
-                this.dropdown.open();
-            },
-            _onBlurred: function onBlurred() {
-                this.isActivated = false;
-                this.dropdown.empty();
-                this.dropdown.close();
-            },
-            _onEnterKeyed: function onEnterKeyed(type, $e) {
-                var cursorDatum, topSuggestionDatum;
-                cursorDatum = this.dropdown.getDatumForCursor();
-                topSuggestionDatum = this.dropdown.getDatumForTopSuggestion();
-                if (cursorDatum) {
-                    this._select(cursorDatum);
-                    $e.preventDefault();
-                } else if (this.autoselect && topSuggestionDatum) {
-                    this._select(topSuggestionDatum);
-                    $e.preventDefault();
-                }
-            },
-            _onTabKeyed: function onTabKeyed(type, $e) {
-                var datum;
-                if (datum = this.dropdown.getDatumForCursor()) {
-                    this._select(datum);
-                    $e.preventDefault();
-                } else {
-                    this._autocomplete(true);
-                }
-            },
-            _onEscKeyed: function onEscKeyed() {
-                this.dropdown.close();
-                this.input.resetInputValue();
-            },
-            _onUpKeyed: function onUpKeyed() {
-                var query = this.input.getQuery();
-                this.dropdown.isEmpty && query.length >= this.minLength ? this.dropdown.update(query) : this.dropdown.moveCursorUp();
-                this.dropdown.open();
-            },
-            _onDownKeyed: function onDownKeyed() {
-                var query = this.input.getQuery();
-                this.dropdown.isEmpty && query.length >= this.minLength ? this.dropdown.update(query) : this.dropdown.moveCursorDown();
-                this.dropdown.open();
-            },
-            _onLeftKeyed: function onLeftKeyed() {
-                this.dir === "rtl" && this._autocomplete();
-            },
-            _onRightKeyed: function onRightKeyed() {
-                this.dir === "ltr" && this._autocomplete();
-            },
-            _onQueryChanged: function onQueryChanged(e, query) {
-                this.input.clearHintIfInvalid();
-                query.length >= this.minLength ? this.dropdown.update(query) : this.dropdown.empty();
-                this.dropdown.open();
-                this._setLanguageDirection();
-            },
-            _onWhitespaceChanged: function onWhitespaceChanged() {
-                this._updateHint();
-                this.dropdown.open();
-            },
-            _setLanguageDirection: function setLanguageDirection() {
-                var dir;
-                if (this.dir !== (dir = this.input.getLanguageDirection())) {
-                    this.dir = dir;
-                    this.$node.css("direction", dir);
-                    this.dropdown.setLanguageDirection(dir);
-                }
-            },
-            _updateHint: function updateHint() {
-                var datum, val, query, escapedQuery, frontMatchRegEx, match;
-                datum = this.dropdown.getDatumForTopSuggestion();
-                if (datum && this.dropdown.isVisible() && !this.input.hasOverflow()) {
-                    val = this.input.getInputValue();
-                    query = Input.normalizeQuery(val);
-                    escapedQuery = _.escapeRegExChars(query);
-                    frontMatchRegEx = new RegExp("^(?:" + escapedQuery + ")(.+$)", "i");
-                    match = frontMatchRegEx.exec(datum.value);
-                    match ? this.input.setHint(val + match[1]) : this.input.clearHint();
-                } else {
-                    this.input.clearHint();
-                }
-            },
-            _autocomplete: function autocomplete(laxCursor) {
-                var hint, query, isCursorAtEnd, datum;
-                hint = this.input.getHint();
-                query = this.input.getQuery();
-                isCursorAtEnd = laxCursor || this.input.isCursorAtEnd();
-                if (hint && query !== hint && isCursorAtEnd) {
-                    datum = this.dropdown.getDatumForTopSuggestion();
-                    datum && this.input.setInputValue(datum.value);
-                    this.eventBus.trigger("autocompleted", datum.raw, datum.datasetName);
-                }
-            },
-            _select: function select(datum) {
-                this.input.setQuery(datum.value);
-                this.input.setInputValue(datum.value, true);
-                this._setLanguageDirection();
-                this.eventBus.trigger("selected", datum.raw, datum.datasetName);
-                this.dropdown.close();
-                _.defer(_.bind(this.dropdown.empty, this.dropdown));
-            },
-            open: function open() {
-                this.dropdown.open();
-            },
-            close: function close() {
-                this.dropdown.close();
-            },
-            setVal: function setVal(val) {
-                val = _.toStr(val);
-                if (this.isActivated) {
-                    this.input.setInputValue(val);
-                } else {
-                    this.input.setQuery(val);
-                    this.input.setInputValue(val, true);
-                }
-                this._setLanguageDirection();
-            },
-            getVal: function getVal() {
-                return this.input.getQuery();
-            },
-            destroy: function destroy() {
-                this.input.destroy();
-                this.dropdown.destroy();
-                destroyDomStructure(this.$node);
-                this.$node = null;
-            }
-        });
-        return Typeahead;
-        function buildDom(input, withHint) {
-            var $input, $wrapper, $dropdown, $hint;
-            $input = $(input);
-            $wrapper = $(html.wrapper).css(css.wrapper);
-            $dropdown = $(html.dropdown).css(css.dropdown);
-            $hint = $input.clone().css(css.hint).css(getBackgroundStyles($input));
-            $hint.val("").removeData().addClass("tt-hint").removeAttr("id name placeholder required").prop("readonly", true).attr({
-                autocomplete: "off",
-                spellcheck: "false",
-                tabindex: -1
-            });
-            $input.data(attrsKey, {
-                dir: $input.attr("dir"),
-                autocomplete: $input.attr("autocomplete"),
-                spellcheck: $input.attr("spellcheck"),
-                style: $input.attr("style")
-            });
-            $input.addClass("tt-input").attr({
-                autocomplete: "off",
-                spellcheck: false
-            }).css(withHint ? css.input : css.inputWithNoHint);
-            try {
-                !$input.attr("dir") && $input.attr("dir", "auto");
-            } catch (e) {}
-            return $input.wrap($wrapper).parent().prepend(withHint ? $hint : null).append($dropdown);
-        }
-        function getBackgroundStyles($el) {
-            return {
-                backgroundAttachment: $el.css("background-attachment"),
-                backgroundClip: $el.css("background-clip"),
-                backgroundColor: $el.css("background-color"),
-                backgroundImage: $el.css("background-image"),
-                backgroundOrigin: $el.css("background-origin"),
-                backgroundPosition: $el.css("background-position"),
-                backgroundRepeat: $el.css("background-repeat"),
-                backgroundSize: $el.css("background-size")
-            };
-        }
-        function destroyDomStructure($node) {
-            var $input = $node.find(".tt-input");
-            _.each($input.data(attrsKey), function(val, key) {
-                _.isUndefined(val) ? $input.removeAttr(key) : $input.attr(key, val);
-            });
-            $input.detach().removeData(attrsKey).removeClass("tt-input").insertAfter($node);
-            $node.remove();
-        }
-    }();
-    (function() {
-        "use strict";
-        var old, typeaheadKey, methods;
-        old = $.fn.typeahead;
-        typeaheadKey = "ttTypeahead";
-        methods = {
-            initialize: function initialize(o, datasets) {
-                datasets = _.isArray(datasets) ? datasets : [].slice.call(arguments, 1);
-                o = o || {};
-                return this.each(attach);
-                function attach() {
-                    var $input = $(this), eventBus, typeahead;
-                    _.each(datasets, function(d) {
-                        d.highlight = !!o.highlight;
-                    });
-                    typeahead = new Typeahead({
-                        input: $input,
-                        eventBus: eventBus = new EventBus({
-                            el: $input
-                        }),
-                        withHint: _.isUndefined(o.hint) ? true : !!o.hint,
-                        minLength: o.minLength,
-                        autoselect: o.autoselect,
-                        datasets: datasets
-                    });
-                    $input.data(typeaheadKey, typeahead);
-                }
-            },
-            open: function open() {
-                return this.each(openTypeahead);
-                function openTypeahead() {
-                    var $input = $(this), typeahead;
-                    if (typeahead = $input.data(typeaheadKey)) {
-                        typeahead.open();
-                    }
-                }
-            },
-            close: function close() {
-                return this.each(closeTypeahead);
-                function closeTypeahead() {
-                    var $input = $(this), typeahead;
-                    if (typeahead = $input.data(typeaheadKey)) {
-                        typeahead.close();
-                    }
-                }
-            },
-            val: function val(newVal) {
-                return !arguments.length ? getVal(this.first()) : this.each(setVal);
-                function setVal() {
-                    var $input = $(this), typeahead;
-                    if (typeahead = $input.data(typeaheadKey)) {
-                        typeahead.setVal(newVal);
-                    }
-                }
-                function getVal($input) {
-                    var typeahead, query;
-                    if (typeahead = $input.data(typeaheadKey)) {
-                        query = typeahead.getVal();
-                    }
-                    return query;
-                }
-            },
-            destroy: function destroy() {
-                return this.each(unattach);
-                function unattach() {
-                    var $input = $(this), typeahead;
-                    if (typeahead = $input.data(typeaheadKey)) {
-                        typeahead.destroy();
-                        $input.removeData(typeaheadKey);
-                    }
-                }
-            }
-        };
-        $.fn.typeahead = function(method) {
-            var tts;
-            if (methods[method] && method !== "initialize") {
-                tts = this.filter(function() {
-                    return !!$(this).data(typeaheadKey);
+
+                string = string.toLowerCase().replace(new RegExp('[' + _accent.from + ']', 'g'), function (match) {
+                    return _accent.to[_accent.from.indexOf(match)];
                 });
-                return methods[method].apply(tts, [].slice.call(arguments, 1));
-            } else {
-                return methods.initialize.apply(this, arguments);
+
+
+                return string;
+            },
+
+            /**
+             * Creates a valid url from string
+             *
+             * @param {String} string
+             * @returns {string}
+             */
+            slugify: function (string) {
+
+                string = this.removeAccent(string);
+                string = string.replace(/[^-a-z0-9]+/g, '-').replace(/-+/g, '-').trim('-');
+
+                return string;
+            },
+
+            /**
+             * Sort list of object by key
+             *
+             * @param {String|Array} field
+             * @param {Boolean} reverse
+             * @param {Function} primer
+             * @returns {Function}
+             */
+            sort: function (field, reverse, primer) {
+
+                var key = function (x) {
+                    for (var i = 0; i < field.length; i++) {
+                        if (typeof x[field[i]] !== 'undefined') {
+                            return primer(x[field[i]])
+                        }
+                    }
+                };
+
+                reverse = [-1, 1][+!!reverse];
+
+                return function (a, b) {
+                    return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+                }
+            },
+
+            /**
+             * Replace a string from-to index
+             *
+             * @param {String} string The complete string to replace into
+             * @param {Number} offset The cursor position to start replacing from
+             * @param {Number} length The length of the replacing string
+             * @param {String} replace The replacing string
+             * @returns {String}
+             */
+            replaceAt: function (string, offset, length, replace) {
+                return string.substring(0, offset) + replace + string.substring(offset + length);
+            },
+
+            /**
+             * Adds <strong> html around a matched string
+             *
+             * @param {String} string The complete string to match from
+             * @param {String} key
+             * @param {Boolean} [accents]
+             * @returns {*}
+             */
+            highlight: function (string, key, accents) {
+
+                string = String(string);
+
+                var offset = string.toLowerCase().indexOf(key.toLowerCase());
+                if (accents) {
+                    offset = this.removeAccent(string).indexOf(this.removeAccent(key));
+                }
+
+                if (offset === -1 || key.length === 0) {
+                    return string;
+                }
+                return this.replaceAt(
+                    string,
+                    offset,
+                    key.length,
+                    "<strong>" + string.substr(offset, key.length) + "</strong>"
+                );
+            },
+
+            joinObject: function (object, join) {
+                var string = "",
+                    iteration = 0;
+
+                for (var i in object) {
+                    if (!object.hasOwnProperty(i)) continue;
+
+                    if (iteration !== 0) {
+                        string += join;
+                    }
+
+                    string += object[i];
+
+                    iteration++;
+                }
+
+                return string;
+            },
+
+            /**
+             * Get carret position, mainly used for right arrow navigation
+             * @param element
+             * @returns {*}
+             */
+            getCaret: function (element) {
+                if (element.selectionStart) {
+                    return element.selectionStart;
+                } else if (document.selection) {
+                    element.focus();
+
+                    var r = document.selection.createRange();
+                    if (r == null) {
+                        return 0;
+                    }
+
+                    var re = element.createTextRange(),
+                        rc = re.duplicate();
+                    re.moveToBookmark(r.getBookmark());
+                    rc.setEndPoint('EndToStart', re);
+
+                    return rc.text.length;
+                }
+                return 0;
+            },
+
+            /**
+             * Executes an anonymous function or a string reached from the window scope.
+             *
+             * @example
+             * Note: These examples works with every configuration callbacks
+             *
+             * // An anonymous function inside the "onInit" option
+             * onInit: function() { console.log(':D'); };
+             *
+             * // myFunction() located on window.coucou scope
+             * onInit: 'window.coucou.myFunction'
+             *
+             * // myFunction(a,b) located on window.coucou scope passing 2 parameters
+             * onInit: ['window.coucou.myFunction', [':D', ':)']];
+             *
+             * // Anonymous function to execute a local function
+             * onInit: function () { myFunction(':D'); }
+             *
+             * @param {String|Array} callback The function to be called
+             * @param {Array} [extraParams] In some cases the function can be called with Extra parameters (onError)
+             * @returns {Boolean}
+             */
+            executeCallback: function (callback, extraParams) {
+
+                if (!callback) {
+                    return false;
+                }
+
+                var _callback,
+                    _node = extraParams[0];
+
+                if (typeof callback === "function") {
+
+                    _callback = callback;
+
+                } else if (typeof callback === "string" || callback instanceof Array) {
+
+                    if (typeof callback === "string") {
+                        callback = [callback, []];
+                    }
+                    _callback = this.helper.getObjectRecursionProperty(window, callback[0]);
+
+                    if (typeof _callback !== "function") {
+
+                        // {debug}
+                        _debug.log({
+                            'node': _node.selector,
+                            'function': 'executeCallback()',
+                            'arguments': JSON.stringify(callback),
+                            'message': 'WARNING - Invalid callback function"'
+                        });
+
+                        _debug.print();
+                        // {/debug}
+
+                        return false;
+                    }
+
+                }
+
+                return _callback.apply(this, $.merge(callback[1] || [], (extraParams) ? extraParams : [])) || true;
+
+            },
+
+            getObjectRecursionProperty: function (scope, objectString) {
+
+                var _exploded = objectString.split('.'),
+                    _isValid = true,
+                    _splitIndex = 0;
+
+                while (_splitIndex < _exploded.length) {
+                    if (typeof scope !== 'undefined') {
+                        scope = scope[_exploded[_splitIndex++]];
+                    } else {
+                        _isValid = false;
+                        break;
+                    }
+                }
+
+                return _isValid && scope || false;
+
+            },
+
+            typeWatch: (function () {
+                var timer = 0;
+                return function (callback, ms) {
+                    clearTimeout(timer);
+                    timer = setTimeout(callback, ms);
+                }
+            })()
+
+        }
+    };
+
+    /**
+     * @public
+     * Implement Typeahead on the selected input node.
+     *
+     * @param {Object} options
+     * @return {Object} Modified DOM element
+     */
+    $.fn.typeahead = $.typeahead = function (options) {
+        return _api.typeahead(this, options);
+    };
+
+    /**
+     * @private
+     * API to handles Typeahead methods via jQuery.
+     */
+    var _api = {
+
+        /**
+         * Enable Typeahead
+         *
+         * @param {Object} node
+         * @param {Object} options
+         * @returns {*}
+         */
+        typeahead: function (node, options) {
+
+            if (!options || !options.source || typeof options.source !== 'object') {
+
+                // {debug}
+                _debug.log({
+                    'node': node.selector || options && options.input,
+                    'function': '$.typeahead()',
+                    'arguments': JSON.stringify(options && options.source || ''),
+                    'message': 'Undefined "options" or "options.source" or invalid source type - Typeahead dropped'
+                });
+
+                _debug.print();
+                // {/debug}
+
+                return;
             }
+
+            if (typeof node === "function") {
+                if (!options.input) {
+
+                    // {debug}
+                    _debug.log({
+                        'node': node.selector,
+                        'function': '$.typeahead()',
+                        //'arguments': JSON.stringify(options),
+                        'message': 'Undefined "options.input" - Typeahead dropped'
+                    });
+
+                    _debug.print();
+                    // {/debug}
+
+                    return;
+                }
+
+                node = $(options.input);
+            }
+
+            if (node.length !== 1) {
+
+                // {debug}
+                _debug.log({
+                    'node': node.selector,
+                    'function': '$.typeahead()',
+                    'arguments': JSON.stringify(options.input),
+                    'message': 'Unable to find jQuery input element OR more than 1 input is found - Typeahead dropped'
+                });
+
+                _debug.print();
+                // {/debug}
+
+                return;
+            }
+
+            return window.Typeahead[node.selector] = new Typeahead(node, options);
+
+        }
+
+    };
+
+// {debug}
+    var _debug = {
+
+        table: {},
+        log: function (debugObject) {
+
+            if (!debugObject.message || typeof debugObject.message !== "string") {
+                return;
+            }
+
+            this.table[debugObject.message] = $.extend({
+                'node': '',
+                'function': '',
+                'arguments': ''
+            }, debugObject)
+
+        },
+        print: function () {
+
+            if (Typeahead.prototype.helper.isEmpty(this.table) || !console || !console.table) {
+                return;
+            }
+
+            if (console.group !== undefined || console.table !== undefined) {
+                console.groupCollapsed('--- jQuery Typeahead Debug ---');
+                console.table(this.table);
+                console.groupEnd();
+            }
+
+            this.table = {};
+
+        }
+
+    };
+// {/debug}
+
+// IE8 Shims
+    window.console = window.console || {
+        log: function () {
+        }
+    };
+
+    if (!('trim' in String.prototype)) {
+        String.prototype.trim = function () {
+            return this.replace(/^\s+/, '').replace(/\s+$/, '');
         };
-        $.fn.typeahead.noConflict = function noConflict() {
-            $.fn.typeahead = old;
-            return this;
+    }
+    if (!('indexOf' in Array.prototype)) {
+        Array.prototype.indexOf = function (find, i /*opt*/) {
+            if (i === undefined) i = 0;
+            if (i < 0) i += this.length;
+            if (i < 0) i = 0;
+            for (var n = this.length; i < n; i++)
+                if (i in this && this[i] === find)
+                    return i;
+            return -1;
         };
-    })();
-})(window.jQuery);
+    }
+    if (!Object.keys) {
+        Object.keys = function (obj) {
+            var keys = [],
+                k;
+            for (k in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, k)) {
+                    keys.push(k);
+                }
+            }
+            return keys;
+        };
+    }
+
+}(window, document, window.jQuery));

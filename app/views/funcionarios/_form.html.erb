@@ -23,14 +23,14 @@
     <%= f.label :cargo %><br />
     <%= f.text_field :cargo %>
   </div>
-  <div class="field">
-    <%= f.label :departamento_id %><br />
-    <%= f.number_field :departamento_id %>
-  </div>
-  <div class="field">
-    <%= f.label :interno %><br />
-    <%= f.number_field :interno %>
-  </div>
+
+    <div class="field">
+     <%= f.label :departamento_id %>
+  
+        </br>
+        <%= f.collection_select :departamento_id, Departamento.all, :id, :name_with_initial, {prompt: "Seleccione un departamento"}, {class: "form-control"}%>
+      </div>
+
   <div class="field">
     <%= f.label :correo %><br />
     <%= f.text_field :correo %>
@@ -39,7 +39,12 @@
     <%= f.label :cumpleanio %><br />
     <%= f.date_select :cumpleanio,:start_year => 1920 %>
   </div>
-  <div class="actions">
-    <%= f.submit %>
-  </div>
-<% end %>
+   </br>
+      <div class="actions">
+        <% if controller.action_name == 'new' or controller.action_name == 'index' %>
+          <%= f.submit "Agregar", :class => 'btn btn-primary'%>
+        <% elsif controller.action_name == 'edit' %>
+          <%= f.submit "Actualizar", :class => 'btn btn-primary'%>
+        <% end %>
+      </div>
+  <% end %>

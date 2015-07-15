@@ -20,12 +20,6 @@
           <b>Cargo:</b>
           <%= @funcionario.cargo %>
         </p>
-
-        <p class="funcionario">
-          <b>Interno:</b>
-          <%= @funcionario.interno %>
-        </p>
-
         <p class="funcionario">
           <b>Correo:</b>
           <%= @funcionario.correo %>
@@ -35,7 +29,6 @@
           <b>Cumpleaño:</b>
           <%= @funcionario.cumpleanio %>
           </p>
-
         <%= link_to 'Editar', edit_funcionario_path(@funcionario) %> | 
 
         <%= link_to 'ir atras', funcionarios_path %>

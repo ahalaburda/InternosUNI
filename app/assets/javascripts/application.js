@@ -16,29 +16,51 @@
 //= require ahoy
 //= require bootstrap
 //= require twitter/typeahead
+//= require handlebars.runtime
+//= require rails.validations
+//= require rails.validations.simple_form
+
 
 $(document).ready(function() {
-	// hide It
-
 	$("[id*=table_]").hide();
+	$('#form-funcionarios').hide();
 	$('#table_101').show();
-	$('#my-affix').affix({
-		offset: {
-			bottom: function () {
-				return (this.bottom = $('#footer').outerHeight(true))
-			}
+});
+
+$(document).ready(function(){
+	setTimeout(function(){
+		$('#flash').remove();
+	}, 5000);
+});
+
+//boton ir arriba
+$(document).ready(function(){
+	if ( ($(window).height() + 100) < $(document).height() ) {
+		$('#ir-arriba').fadeIn('slow');
+		$('#ir-arriba').removeClass('hidden').affix({
+			offset: {top:100}
+		});
+	}
+});
+
+$(document).ready(function() {
+	$("#btn1").click(function(){
+		$('#form-funcionarios').fadeToggle();
+		if($('#gbtn1').hasClass('glyphicon glyphicon-plus')){
+			$('#gbtn1').removeClass('glyphicon glyphicon-plus');
+			$('#gbtn1').addClass('glyphicon glyphicon-chevron-up');
+		}else{
+			$('#gbtn1').removeClass('glyphicon glyphicon-chevron-up');
+			$('#gbtn1').addClass('glyphicon glyphicon-plus');
 		}
-	})
+	});
 });
 
 function desplegar(interno){
 	$("[id*=table_]").hide();
 		$('#table_'+interno).fadeToggle();
 };
-function myFunction() {
-    alert("You pressed a key inside the input field");
-    console.log("se va por ahi");
-};
+
 function irA (interno) {
 	var p = $( "#columna1_"+interno );
 	var offset = p.offset();
@@ -49,23 +71,25 @@ function irA (interno) {
 	desplegar(interno);
 	console.log("se va por ahi");
 };
+
 // http://stackoverflow.com/questions/22821770/typeahead-js-template-settings-ignored
 $(document).ready(function() {
 	var sugerencia_funcionarios = new Bloodhound({
 		datumTokenizer: function(d) {
 			return Bloodhound.tokenizers.whitespace(d.nombre);
 		},queryTokenizer: Bloodhound.tokenizers.whitespace,
-		limit: 6,
+		limit: 6 ,
 		remote: '/funcionarios?value=%QUERY'
 	});
 	var sugerencia_departamentos = new Bloodhound({
 		datumTokenizer: function(d) {
-			return Bloodhound.tokenizers.whitespace(d.nombre);
+			return Bloodhound.tokenizers.whitespace(d.value);
 		},queryTokenizer: Bloodhound.tokenizers.whitespace,
 		limit: 6,
-	remote: '/departamentos?value=%QUERY'
+		remote: '/departamentos?value=%QUERY'
 	});
-	sugerencia_funcionarios.initialize();
+	sugerencia_funcionarios.clearRemoteCache();
+	sugerencia_funcionarios.initialize(true);
 	sugerencia_departamentos.initialize();
 
 	$('#the-basics .typeahead').typeahead({
@@ -83,27 +107,26 @@ $(document).ready(function() {
 				'<div class="empty-message">',
 				'ninguna coincidencia :(',
 				'</div>'
-		    ].join('\n'),
-		    suggestion: function(data){
-
-		      return '<p onselect="myFunction()" onclick="irA('+data.interno+')" style="cursor:pointer" >' + data.nombre +' '+data.apellido +' - ' + data.interno + '</p>';
-		    }
+			].join('\n'),
+			suggestion: function(funcionario){
+				return '<p onselect="myFunction()" onclick="irA('+funcionario.interno+')" style="cursor:pointer" >' + funcionario.nombre +' '+funcionario.apellido + ' - ' + funcionario.interno +'</p>';
+			}
 		}
 	},
 	{
-	    name: 'sugerencia-departamentos',
-	    displayKey: 'value',
-	    source: sugerencia_departamentos.ttAdapter(),
+		name: 'sugerencia-departamentos',
+		displayKey: 'value',
+		source: sugerencia_departamentos.ttAdapter(),
 		templates: {
-		  	 header: '<h3 class="funcionarios-list">Departamento</h3>',
-		     empty: [
-		      '<div class="empty-message">',
-		      'ninguna coincidencia :(',
-		      '</div>'
-		    ].join('\n'),
-		    suggestion: function(data){
-		      return '<p onkeydown="myFunction()" onclick="irA('+data.interno+')" style="cursor:pointer" >' + data.nombre +' - ' + data.interno + '</p>';
-		    }
+			header: '<h3 class="funcionarios-list">Departamento </h3>',
+			empty: [
+				'<div class="empty-message">',
+				'ninguna coincidencia :(',
+				'</div>'
+			].join('\n'),
+			suggestion: function(departamento){
+				return '<p onkeydown="myFunction()" onclick="irA('+departamento.interno+')" style="cursor:pointer" >' + departamento.nombre +' - ' + departamento.interno + '</p>';
+			}
 		}
 	});
 });

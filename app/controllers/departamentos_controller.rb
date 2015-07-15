@@ -2,6 +2,7 @@ class DepartamentosController < ApplicationController
   # GET /departamentos
   # GET /departamentos.json
   def index
+    @departamento = Departamento.new
     # @departamentos = Departamento.all
     @departamentos = Departamento.search(params[:value])
 
@@ -45,7 +46,7 @@ class DepartamentosController < ApplicationController
 
     respond_to do |format|
       if @departamento.save
-        format.html { redirect_to @departamento, notice: 'El departamento se ha creado correctamente', class: "alert alert-success"  }
+        format.html { redirect_to departamentos_url, notice: 'El departamento se ha creado correctamente'  }
         format.json { render json: @departamento, status: :created, location: @departamento }
       else
         format.html { render action: "new" }
@@ -61,7 +62,7 @@ class DepartamentosController < ApplicationController
 
     respond_to do |format|
       if @departamento.update_attributes(params[:departamento])
-        format.html { redirect_to @departamento, notice: 'El departamento se ha actualizado correctamente.', class: 'alert alert-success' }
+        format.html { redirect_to departamentos_url, notice: 'El departamento se ha actualizado correctamente.' }
         format.json { head :no_content }
       else
         format.html { render action: "edit" }
@@ -77,7 +78,7 @@ class DepartamentosController < ApplicationController
     @departamento.destroy
 
     respond_to do |format|
-      format.html { redirect_to departamentos_url }
+      format.html { redirect_to departamentos_url, alert: 'El departamento eliminado.' }
       format.json { head :no_content }
     end
   end
