@@ -1,0 +1,62 @@
+<%= render 'layouts/navigation' %>
+<div class="container">
+    <span id="ir-arriba" class="hidden">
+      <a href="#top" class="btn btn-circle btn-lg btn-primary"  onclick="$('html,body').animate({scrollTop:0},'slow');return false;">
+        <i class="glyphicon glyphicon-chevron-up"></i>
+      </a>
+    </span>
+    <h1> Usuarios
+        <button type="button" class="btn btn-print btn-outline btn-circle" id="btn1">
+            <span class="glyphicon glyphicon-plus" id="gbtn1"></span>
+        </button>
+    </h1>
+    <div id="flash">
+      <% flash.each do |type, message| %>
+        <div class="alert <%= bootstrap_class_for(type) %> fade in">
+          <button class="close" data-dismiss="alert">×</button>
+          <%= message %>
+        </div>
+      <% end %>
+    </div>
+    <div id="form-funcionarios">
+        <%= render 'formulario' %>
+    </div><br>
+
+
+  <table id="table" class="table table-hover">
+    <thead>
+      <tr>
+        <th>id</th>
+        <th>Nombre de Usuario</th>
+        <th>email</th>
+        <th>Cantidad conexiones al sistema</th>
+        <th>Ultima vez conectado</th>
+        <th>Creacion del perfil</th>
+        <th>Modificacion del perfil</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @usuarios.each do |usuario| %>
+        <tr>
+          <td><%= usuario.id %></td>
+          <td><%= usuario.nombre%></td>
+          <td><%= usuario.email %></td>
+          <td><%= usuario.sign_in_count%></td>
+          <td><%= usuario.current_sign_in_at%></td>
+          <td><%= usuario.created_at%></td>
+          <td><%= usuario.updated_at%></td>
+          <td>
+            <%= link_to edit_usuario_path(usuario), class: 'btn btn-warning btn-outline btn-circle', title: 'Editar', 'data-toggle' => 'tooltip', 'data-placement' => 'right' do %>
+              <span class="glyphicon glyphicon-pencil"></span>
+            <% end %>
+            <%= link_to usuario, method: :delete, data: { confirm: 'Va eliminarlo, esta seguro?' }, class: 'btn btn-danger btn-outline btn-circle', title: 'Borrar', 'data-toggle' => 'tooltip', 'data-placement' => 'right'  do %>
+              <span class="glyphicon glyphicon-remove"></span>
+            <% end %>
+          </td>  
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -20,24 +20,25 @@
 //= require rails.validations
 //= require rails.validations.simple_form
 
-
 $(document).ready(function() {
 	$("[id*=table_]").hide();
 	$('#form-funcionarios').hide();
 	$('#table_101').show();
 });
 
+
+
 $(document).ready(function(){
 	setTimeout(function(){
 		$('#flash').remove();
 	}, 5000);
 });
-
 //boton ir arriba
 $(document).ready(function(){
 	if ( ($(window).height() + 100) < $(document).height() ) {
 		$('#ir-arriba').fadeIn('slow');
-		$('#ir-arriba').removeClass('hidden').affix({
+		$('#ir-arriba').removeClass('hidden')
+		.affix({
 			offset: {top:100}
 		});
 	}

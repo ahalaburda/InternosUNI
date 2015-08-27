@@ -18,6 +18,6 @@ class Departamento < ActiveRecord::Base
 	end
 
 	def name_with_initial
-		"#{nombre}"
+		"#{interno} - #{nombre}"
 	end
 end

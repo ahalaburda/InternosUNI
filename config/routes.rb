@@ -1,4 +1,6 @@
 Internos::Application.routes.draw do
+  devise_for :usuarios
+
   resources :funcionarios
 
   get "home/index"
@@ -10,6 +12,19 @@ Internos::Application.routes.draw do
   end
 
   resources :departamentos
+
+
+  devise_for :usuarios, path: "/", path_names: { 
+    sign_in:        'login', 
+    sign_out:       'logout', 
+    password:       'secret', 
+    confirmation:   'verification', 
+    unlock:         'unblock', 
+    registration:   'register', 
+    sign_up:        '' 
+  }
+
+  resources :usuarios
 
 
   # The priority is based upon order of creation:

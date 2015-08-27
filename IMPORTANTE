@@ -1,0 +1,4 @@
+Los permisos que deb tener en el servidor son 755
+y el usuario ahalaburda como www-data funcionan
+
+otro configuracion de momento no funciona como 740 o 750 y usuario root

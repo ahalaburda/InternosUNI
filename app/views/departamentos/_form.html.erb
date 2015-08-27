@@ -19,7 +19,14 @@
     <%= f.label :interno %><br />
     <%= f.number_field :interno %>
   </div>
-  <div class="actions">
-    <%= f.submit class: 'btn btn-primary' %>
+</br>
+  <div class="col-md-offset-11">
+    <div class="actions">
+      <% if controller.action_name == 'new' or controller.action_name == 'index' %>
+        <%= f.submit "Agregar", :class => 'mui-btn mui-btn-primary mui-btn-raised'%>
+      <% elsif controller.action_name == 'edit' %>
+        <%= f.submit "Actualizar", :class => 'btn btn-primary'%>
+      <% end %>
+    </div>
   </div>
 <% end %>
