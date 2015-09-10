@@ -1,5 +1,5 @@
 class DepartamentosController < ApplicationController
- # before_filter :authenticate_usuario!
+  before_filter :authenticate_usuario!, except: [ :index, :show ]
   # GET /departamentos
   # GET /departamentos.json
   def index

@@ -1,7 +1,7 @@
 class FuncionariosController < ApplicationController
+  before_filter :authenticate_usuario!, except: [ :index, :show ]
   # GET /funcionarios
   # GET /funcionarios.json
- # before_filter :authenticate_usuario!
   def index
     @funcionario = Funcionario.new
     @funcionariosAll = Funcionario.all(:order => 'nombre ASC')

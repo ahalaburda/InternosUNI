@@ -61,40 +61,40 @@
 	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
 	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
-	}
+}
 .form-control:focus {
 	border-color: #66afe9;
 	border-bottom: 2px solid #66AFE9;
 	outline: 0;
-		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
 	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
 }
 #funcionario_cumpleanio_3i,
 #funcionario_cumpleanio_2i,
 #funcionario_cumpleanio_1i {
-		height: 34px;
-		border-radius: 0px;
-		background-color: #fff;
-		background-image: none;
-		border-left: 0px;
-		border-top: 0px;
-		border-right: 0px;
-		-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+	height: 34px;
+	border-radius: 0px;
+	background-color: #fff;
+	background-image: none;
+	border-left: 0px;
+	border-top: 0px;
+	border-right: 0px;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
 }
 #funcionario_cumpleanio_3i:focus,
 #funcionario_cumpleanio_2i:focus,
 #funcionario_cumpleanio_1i:focus{
-		border-color: #66afe9;
-		border-bottom: 2px solid #66AFE9;
-		outline: 0;	
+	border-color: #66afe9;
+	border-bottom: 2px solid #66AFE9;
+	outline: 0;	
 }
 .help-inline {
-  display: inline;
-  text-transform: uppercase;
-  color: #D00;
-  padding-left: 5px;
-  font-size: 12px;
+	display: inline;
+	text-transform: uppercase;
+	color: #D00;
+	padding-left: 5px;
+	font-size: 12px;
 }
 ////////////////////////////////////////FORM BUSCAR
 #the-basics input {
@@ -206,26 +206,26 @@ a.list-group-item:hover, a.list-group-item:focus {
 	box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .glyphicon {
-  top: 2px;
+	top: 2px;
 }
 .hvr-grow-shadow {
-  display: inline-block;
-  vertical-align: middle;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-transition-duration: 0.3s;
-  transition-duration: 0.3s;
-  -webkit-transition-property: box-shadow, transform;
-  transition-property: box-shadow, transform;
+	display: inline-block;
+	vertical-align: middle;
+	-webkit-transform: translateZ(0);
+	transform: translateZ(0);
+	box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	-moz-osx-font-smoothing: grayscale;
+	-webkit-transition-duration: 0.3s;
+	transition-duration: 0.3s;
+	-webkit-transition-property: box-shadow, transform;
+	transition-property: box-shadow, transform;
 }
 .hvr-grow-shadow:hover, .hvr-grow-shadow:focus, .hvr-grow-shadow:active {
-  box-shadow: 0 10px 10px -10px rgba(0, 0, 0, 0.5);
-  -webkit-transform: scale(1.1);
-  transform: scale(1.1);
+	box-shadow: 0 10px 10px -10px rgba(0, 0, 0, 0.5);
+	-webkit-transform: scale(1.1);
+	transform: scale(1.1);
 }
 ///////////////////////// boton ir arriba
 #ir-arriba.affix-top {
@@ -241,8 +241,8 @@ a.list-group-item:hover, a.list-group-item:focus {
 #ir-arriba.btn-primary {
 	color: #428bca;
 	background-color: white;
- 	border-color: white;
- 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	border-color: white;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 	transition: all 0.2s ease-in-out;
 }
 #ir-arriba.btn-primary:hover {
@@ -253,10 +253,10 @@ a.list-group-item:hover, a.list-group-item:focus {
 	transition: all 0.2s ease-in-out;
 }
 @media (max-width: 877px) {
-    #ir-arriba {
-       display: none;
-       visibility: hidden;
-   }
+	#ir-arriba {
+		display: none;
+		visibility: hidden;
+	}
 }
 ///////////////////////////////////////tablas
 .table>thead>tr>td.info,
@@ -436,60 +436,60 @@ span.twitter-typeahead {
 
 ////botones material design
 .mui-btn {
-  text-align: center;
-  vertical-align: middle;
-  -ms-touch-action: manipulation;
-  touch-action: manipulation;
-  cursor: pointer;
-  background-image: none;
-  border: none;
-  white-space: nowrap;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  transition: all 0.2s ease-in-out;
-  font-weight: 400;
-  font-size: 14px;
-  line-height: 18px;
-  letter-spacing: 0.05em;
-  color: rgba(0, 0, 0, 0.87);
-  text-transform: uppercase;
-  height: 36px;
-  line-height: 36px;
-  padding: 0 18px;
-  border-radius: 2px;
-  margin-top: 6px;
-  margin-bottom: 6px;
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-  -webkit-animation-duration: 0.001s;
-  animation-duration: 0.001s;
-  -webkit-animation-name: mui-node-inserted;
-  animation-name: mui-node-inserted;
+	text-align: center;
+	vertical-align: middle;
+	-ms-touch-action: manipulation;
+	touch-action: manipulation;
+	cursor: pointer;
+	background-image: none;
+	border: none;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	transition: all 0.2s ease-in-out;
+	font-weight: 400;
+	font-size: 14px;
+	line-height: 18px;
+	letter-spacing: 0.05em;
+	color: rgba(0, 0, 0, 0.87);
+	text-transform: uppercase;
+	height: 36px;
+	line-height: 36px;
+	padding: 0 18px;
+	border-radius: 2px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+	position: relative;
+	display: inline-block;
+	overflow: hidden;
+	-webkit-animation-duration: 0.001s;
+	animation-duration: 0.001s;
+	-webkit-animation-name: mui-node-inserted;
+	animation-name: mui-node-inserted;
 }
 
 .mui-btn-raised, .mui-btn-floating {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  transition: all 0.2s ease-in-out;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	transition: all 0.2s ease-in-out;
 }
 
 .mui-btn-raised:not(:disabled):active, .mui-btn-floating:not(:disabled):active {
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 }
 
 .mui-btn-default {
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #FFF;
+	color: rgba(0, 0, 0, 0.87);
+	background-color: #FFF;
 }
 
 .mui-btn-default:hover,
 .mui-btn-default:focus,
 .mui-btn-default:active,
 .mui-open > .mui-btn-default.mui-dropdown-toggle {
-  color: rgba(0, 0, 0, 0.87);
-  background-color: white;
+	color: rgba(0, 0, 0, 0.87);
+	background-color: white;
 }
 
 .mui-btn-default[disabled],
@@ -500,21 +500,21 @@ fieldset[disabled] .mui-btn-default,
 fieldset[disabled] .mui-btn-default:hover,
 fieldset[disabled] .mui-btn-default:focus,
 fieldset[disabled] .mui-btn-default:active {
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #FFF;
+	color: rgba(0, 0, 0, 0.87);
+	background-color: #FFF;
 }
 
 .mui-btn-primary {
-  color: #FFF;
-  background-color: #2196F3;
+	color: #FFF;
+	background-color: #2196F3;
 }
 
 .mui-btn-primary:hover,
 .mui-btn-primary:focus,
 .mui-btn-primary:active,
 .mui-open > .mui-btn-primary.mui-dropdown-toggle {
-  color: #FFF;
-  background-color: #39a1f4;
+	color: #FFF;
+	background-color: #39a1f4;
 }
 
 .mui-btn-primary[disabled],
@@ -525,31 +525,31 @@ fieldset[disabled] .mui-btn-primary,
 fieldset[disabled] .mui-btn-primary:hover,
 fieldset[disabled] .mui-btn-primary:focus,
 fieldset[disabled] .mui-btn-primary:active {
-  color: #FFF;
-  background-color: #2196F3;
+	color: #FFF;
+	background-color: #2196F3;
 }
 
 //////////////////////////////////login
 .form-signin {
-  max-width: 330px;
-  margin: 0 auto;
-  margin-top: 17%;
+	max-width: 330px;
+	margin: 0 auto;
+	margin-top: 17%;
 }
 .form-signin .form-control {
-  font-size: 16px;
-  height: auto;
+	font-size: 16px;
+	height: auto;
 }
 .form-signin input[type="text"] {
-  margin-bottom: 10px;
-  border-radius:0px;
+	margin-bottom: 10px;
+	border-radius:0px;
 }
 .form-signin input[type="password"] {
-  margin-bottom: 10px;
-  border-radius:0px;
+	margin-bottom: 10px;
+	border-radius:0px;
 }
 .form-signin-heading {
-  text-align: center;
+	text-align: center;
 }
 .form-signin .btn{
-  border-radius:0px;
+	border-radius:0px;
 }
