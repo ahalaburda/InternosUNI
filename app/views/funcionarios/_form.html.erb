@@ -1,50 +1,39 @@
-<%= form_for(@funcionario) do |f| %>
-  <% if @funcionario.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@funcionario.errors.count, "error") %> prohibited this funcionario from being saved:</h2>
+<!-- <h1 id="titulo"> Editando funcionario 
+  <button type="button" class="btn btn-print btn-outline btn-circle" id="btn1">
+      <span class="glyphicon glyphicon-plus" id="gbtn1"></span>
+  </button>
+</h1> -->
 
-      <ul>
-      <% @funcionario.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-      <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <div class="field">
-    <%= f.label :nombre %><br />
-    <%= f.text_field :nombre %>
-  </div>
-  <div class="field">
-    <%= f.label :apellido %><br />
-    <%= f.text_field :apellido %>
-  </div>
-  <div class="field">
-    <%= f.label :cargo %><br />
-    <%= f.text_field :cargo %>
-  </div>
-
+<%= simple_form_for @funcionario, validate: true do |f| %>
+<div class="row">
+  <div class="col-md-4">
     <div class="field">
-     <%= f.label :departamento_id %>
-  
-        </br>
-        <%= f.collection_select :departamento_id, Departamento.all, :id, :name_with_initial, {prompt: "Seleccione un departamento"}, {class: "form-control"}%>
-      </div>
-
-  <div class="field">
-    <%= f.label :correo %><br />
-    <%= f.text_field :correo %>
+      <%= f.input :nombre, :input_html => {class: "form-control"} %>
+      <%= f.input :apellido, :input_html => {class: "form-control"}  %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :cumpleanio %><br />
-    <%= f.date_select :cumpleanio,:start_year => 1920 %>
+  <div class="col-md-4">
+    <div class="field">
+      <%= f.input :cargo, :input_html => {class: "form-control"} %>
+      <%= f.input :departamento_id, :collection => Departamento.all(:order => 'interno'), :label_method => :name_with_initial, :prompt => "Elige un departamento", :input_html => {class: "form-control"} %>
+    </div>
   </div>
-   </br>
-      <div class="actions">
-        <% if controller.action_name == 'new' or controller.action_name == 'index' %>
-          <%= f.submit "Agregar", :class => 'btn btn-primary'%>
-        <% elsif controller.action_name == 'edit' %>
-          <%= f.submit "Actualizar", :class => 'btn btn-primary'%>
-        <% end %>
-      </div>
-  <% end %>
+  <div class="col-md-4">
+    <div class="field">
+      <%= f.input :correo, :input_html => {class: "form-control"} %>
+      <%= f.input :cumpleanio, as: :date, start_year: Time.now.year , end_year: Time.now.year - 70, order: [:day, :month, :year] %>
+    </div>
+  </div>
+</div>
+  </br>
+  <div class="col-md-offset-9">
+    <div class="actions" style="margin-left: 65px;">
+      <% if controller.action_name == 'new' or controller.action_name == 'index' %>
+        <%= f.submit "Agregar", :class => 'mui-btn mui-btn-primary mui-btn-raised'%>
+      <% elsif controller.action_name == 'edit' %>
+        <%= f.submit "Actualizar", :class => 'mui-btn mui-btn-primary mui-btn-raised'%>
+      <% end %>
+      <%= button_tag "Cancelar", type: :reset ,id: 'btn_cancelar', :class => 'mui-btn mui-btn-raised mui-btn-default'%>
+    </div>
+  </div>
+<% end %>

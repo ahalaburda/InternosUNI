@@ -1,0 +1,29 @@
+<% date = Time.now %>
+<% mesActual = date.strftime("%m") %>
+<% diaActual = date.strftime("%d") %>
+<div class="col-xs-12 col-sm-6 col-md-3 sidebar-offcanvas blog-sidebar" id="sidebar" role="navigation">
+	<div id="my-affix" class="sidebar-module sidebar-module-inset">
+		<div class="list-group">
+			<a class="list-group-item active" style="text-align: center">Cumpleaños del Mes</a>
+			<% @funcionarios.each do |funcionario| %>
+				<% cumple1=funcionario.cumpleanio%>
+				<% cumpleMes = cumple1.strftime("%m") %>
+				<% cumpleDia = cumple1.strftime("%d") %>
+				<% cumpleFormateado  = cumple1.strftime("%d-%m") %>
+				<%if mesActual == cumpleMes %>
+					<%if diaActual == cumpleDia %>
+						 <li class="list-group-item">
+						 	<span class="label label-primary"><%= cumpleFormateado %></span>
+						 	<a href="mailto:<%= funcionario.correo %> ?Subject=Feliz%20Cumplea&ntilde;os" target="_top" hspace="10" data-toggle="tooltip" data-placement="right" title="Hoy es su cumpleaños has click aqui y felicitalo">
+						 		<%= funcionario.nombre %> <%= funcionario.apellido %>
+							<img src="felizCumple.jpg" style="width: 77px" align="middle" hspace="10" data-toggle="tooltip" data-placement="right" title="Hoy es su cumpleaños has click aqui y felicitalo">
+						</li>
+					<% else %>
+						 <li class="list-group-item"><span class="label label-primary"><%= cumpleFormateado %></span> <%= funcionario.nombre %> <%= funcionario.apellido %>  </li>
+					<% end %>
+						</a>
+				<% end %>
+			<% end %>
+		</div>
+	</div>
+</div>

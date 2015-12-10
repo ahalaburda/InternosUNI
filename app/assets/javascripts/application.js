@@ -13,21 +13,19 @@
 //= require jquery
 //= require jquery_ujs
 //= require_tree .
-//= require best_in_place
 //= require ahoy
 //= require bootstrap
 //= require twitter/typeahead
 //= require handlebars.runtime
 //= require rails.validations
 //= require rails.validations.simple_form
+//= require jquery_nested_form
 
 $(document).ready(function() {
 	$("[id*=table_]").hide();
 	$('#form-funcionarios').hide();
 	$('#table_101').show();
 });
-
-
 
 $(document).ready(function(){
 	setTimeout(function(){

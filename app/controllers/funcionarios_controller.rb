@@ -33,6 +33,9 @@ class FuncionariosController < ApplicationController
   # GET /funcionarios/1/edit
   def edit
     @funcionario = Funcionario.find(params[:id])
+    respond_to do |format|
+      format.js
+    end
   end
   # POST /funcionarios
   # POST /funcionarios.json

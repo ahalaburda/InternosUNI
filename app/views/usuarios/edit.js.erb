@@ -1,0 +1,9 @@
+$("#form-funcionarios").html(" <%= escape_javascript render  'formulario', usuario: @usuarios %>");
+
+$('#form-funcionarios').fadeIn(500);
+		if($('#gbtn1').hasClass('glyphicon glyphicon-plus')){
+			$('#gbtn1').removeClass('glyphicon glyphicon-plus');
+			$('#gbtn1').addClass('glyphicon glyphicon-chevron-up');
+		}
+
+$("html, body").scrollTop(0);

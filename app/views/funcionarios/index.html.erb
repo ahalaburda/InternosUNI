@@ -5,7 +5,7 @@
         <i class="glyphicon glyphicon-chevron-up"></i>
       </a>
     </span>
-    <h1> Funcionarios 
+    <h1 id="titulo_funcionario"> Funcionarios 
         <button type="button" class="btn btn-print btn-outline btn-circle" id="btn1">
             <span class="glyphicon glyphicon-plus" id="gbtn1"></span>
         </button>
@@ -38,7 +38,7 @@
         <td><%= funcionario.correo %></td>
         <td><%= funcionario.cumpleanio %></td>
         <td>
-            <%= link_to edit_funcionario_path(funcionario), class: 'btn btn-warning btn-outline btn-circle', title: 'Editar', 'data-toggle' => 'tooltip', 'data-placement' => 'right' do %>
+            <%= link_to edit_funcionario_path(funcionario), class: 'btn btn-warning btn-outline btn-circle', title: 'Editar', remote: true,  'data-toggle' => 'tooltip', 'data-placement' => 'right' do %>
               <span class="glyphicon glyphicon-pencil"></span>
             <% end %>
             <%= link_to funcionario, method: :delete, data: { confirm: 'Va eliminarlo, esta seguro?' }, class: 'btn btn-danger btn-outline btn-circle', title: 'borrar', 'data-toggle' => 'tooltip', 'data-placement' => 'right'  do %>
@@ -48,6 +48,5 @@
       </tr>
     <% end %>
   </table>
-
 </div>
 <br />

@@ -1,0 +1,3 @@
+$("#modal_departamento").html(" <%= escape_javascript render  'layouts/modal' %>");
+$("#modal_departamento .modal-body").html(" <%= escape_javascript render  'formulario', departamento: @departamento, remote: true %>");
+$("#modal_departamento .modal").modal("show");

@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  departamento: MyString
+  interno: MyString
+  empresa: 
+
+two:
+  departamento: MyString
+  interno: MyString
+  empresa: 

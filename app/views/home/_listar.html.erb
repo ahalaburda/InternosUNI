@@ -1,72 +1,45 @@
-<div class="row-fluid" >
-	<div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
-		<table class="table ">
-			<thead>
-				<tr class="active">
-					<th>Departamento</th>
-					<th>Interno</th>
+<div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
+	<table class="table ">
+		<thead>
+			<tr class="active">
+				<th>Departamento</th>
+				<th>Interno</th>
+			</tr>
+		</thead>
+		<tbody>
+			<% @departamentos.each do |departamento| %>
+				<tr>
+					<td class="columna1" id="columna1_<%=departamento.interno%>"  style="cursor:pointer" onclick="desplegar(<%=departamento.interno%>)"><div class="caret "></div><%= departamento.nombre %></td>
+					<td width="200" align="center" id="columna2_<%=departamento.interno%>" onclick="desplegar(<%=departamento.interno%>)" style="background: #2980B9 ; cursor:pointer" ><font color="#fff"><%= departamento.interno %></td>
 				</tr>
-			</thead>
-			<tbody>
-				<% @departamentos.each do |departamento| %>
-					<tr>
-						<td class="columna1" id="columna1_<%=departamento.interno%>"  style="cursor:pointer" onclick="desplegar(<%=departamento.interno%>)"><div class="caret "></div><%= departamento.nombre %></td>
-						<td width="200" align="center" id="columna2_<%=departamento.interno%>" onclick="desplegar(<%=departamento.interno%>)" style="background: #2980B9 ; cursor:pointer" ><font color="#fff"><%= departamento.interno %></td>
-					</tr>
-					<tr>
-						<td>
-							<table id="table_<%=departamento.interno%>" class="table list" id="table">
-									<tr class="active accordion">
-										<th>Nombre</th>
-										<th>Apellido</th>
-										<th>Cargo</th>
-										<th>Correo</th>
+				<tr>
+					<td>
+						<table id="table_<%=departamento.interno%>" class="table list" id="table">
+								<tr class="active accordion">
+									<th>Nombre</th>
+									<th>Apellido</th>
+									<th>Cargo</th>
+									<th>Correo</th>
+								</tr>
+								<% @funcionarios.each do |funcionario| %>
+									<%if funcionario.departamento_id == departamento.id%>
+									<tr class="info">
+										<td><%= funcionario.nombre %></td>
+										<td><%= funcionario.apellido %></td>
+										<td><%= funcionario.cargo %></td>
+										<td>
+											<a href="mailto:<%= funcionario.correo %>" class="btn btn-sm btn-hover btn-success hvr-grow-shadow" style="border-bottom-width: 0px; padding-bottom: 0px; padding-top: 2px;">
+												<span class="glyphicon glyphicon-envelope"></span>
+											</a>
+											<%= funcionario.correo %> 
+										</td>
 									</tr>
-									<% @funcionarios.each do |funcionario| %>
-										<%if funcionario.departamento_id == departamento.id%>
-										<tr class="info">
-											<td><%= funcionario.nombre %></td>
-											<td><%= funcionario.apellido %></td>
-											<td><%= funcionario.cargo %></td>
-											<td>
-												<a href="mailto:<%= funcionario.correo %>" class="btn btn-sm btn-hover btn-success hvr-grow-shadow" style="border-bottom-width: 0px; padding-bottom: 0px; padding-top: 2px;">
-													<span class="glyphicon glyphicon-envelope"></span>
-												</a>
-												<%= funcionario.correo %> 
-											</td>
-										</tr>
-										<% end %>
 									<% end %>
-							</table>
-						</td>
-					</tr>
-				<%end%>
-			</tbody>
-		</table>
-	</div>
-	<% date = Time.now %>
-	<% mesActual = date.strftime("%m") %>
-	<% diaActual = date.strftime("%d") %>
-	<div class="col-xs-12 col-sm-6 col-md-3 sidebar-offcanvas blog-sidebar" id="sidebar" role="navigation">
-		<div id="my-affix" class="sidebar-module sidebar-module-inset">
-			<div class="list-group">
-				<a class="list-group-item active">Cumpleaños del Mes</a>
-				<% @funcionarios.each do |funcionario| %>
-				<% cumple1=funcionario.cumpleanio%>
-				<% cumpleMes = cumple1.strftime("%m") %>
-				<% cumpleDia = cumple1.strftime("%d") %>
-				<% cumpleFormateado  = cumple1.strftime("%d-%m") %>
-					<%if mesActual == cumpleMes %>
-						<%if diaActual == cumpleDia %>
-							<a href="mailto:<%= funcionario.correo %> ?Subject=Feliz%20Cumplea&ntilde;os" target="_top" class="list-group-item"><%= funcionario.nombre %> <%= funcionario.apellido %> <%= cumpleFormateado %> 
-							<img src="felizCumple.jpg" style="width: 77px" align="middle" hspace="10" data-toggle="tooltip" data-placement="right" title="Hoy es su cumpleaños has click aqui y felicitalo">
-						<% else %>
-							<a class="list-group-item"> <%= funcionario.nombre %> <%= funcionario.apellido %> <%= cumpleFormateado %> 
-						<% end %>
-					</a>
-					<% end %>
-				<% end %>
-			</div>
-		</div>
-	</div>
+								<% end %>
+						</table>
+					</td>
+				</tr>
+			<%end%>
+		</tbody>
+	</table>
 </div>

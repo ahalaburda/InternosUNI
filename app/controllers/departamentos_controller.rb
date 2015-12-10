@@ -3,7 +3,7 @@ class DepartamentosController < ApplicationController
   # GET /departamentos
   # GET /departamentos.json
   def index
-    @departamento = Departamento.new
+    @departamento = Departamento.new(params[:departamento])
     @departamentos = Departamento.search(params[:value])
     respond_to do |format|
       format.html # index.html.erb
@@ -26,11 +26,15 @@ class DepartamentosController < ApplicationController
     respond_to do |format|
       format.html # new.html.erb
       format.json { render json: @departamento }
+      format.js 
     end
   end
   # GET /departamentos/1/edit
   def edit
     @departamento = Departamento.find(params[:id])
+    respond_to do |format|
+      format.js
+    end
   end
   # POST /departamentos
   # POST /departamentos.json
@@ -40,6 +44,7 @@ class DepartamentosController < ApplicationController
       if @departamento.save
         format.html { redirect_to departamentos_url, notice: 'El departamento se ha creado correctamente'  }
         format.json { render json: @departamento, status: :created, location: @departamento }
+        format.js
       else
         format.html { render action: "new" }
         format.json { render json: @departamento.errors, status: :unprocessable_entity }

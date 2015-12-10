@@ -1,4 +1,5 @@
-<%= simple_form_for @departamento, :validate => true do |f| %>
+<% remote ||= false %>
+<%= simple_form_for @departamento, remote: remote ,:validate => true do |f| %>
 <div class="row">
 	<div class="col-md-4">
 		<div class="field">
@@ -8,13 +9,14 @@
 	</div>
 </div>
 	</br>
-	<div class="col-md-offset-11">
-		<div class="actions">
+	<div class="col-md-offset-9">
+		<div class="actions" id="botones_formulario" >
 			<% if controller.action_name == 'new' or controller.action_name == 'index' %>
 				<%= f.submit "Agregar", :class => 'mui-btn mui-btn-primary mui-btn-raised'%>
 			<% elsif controller.action_name == 'edit' %>
-				<%= f.submit "Actualizar", :class => 'btn btn-primary'%>
+				<%= f.submit "Actualizar", :class => 'mui-btn mui-btn-primary mui-btn-raised'%>
 			<% end %>
+			<%= button_tag "Cancelar", type: :reset , :class => 'mui-btn mui-btn-raised mui-btn-default'%>
 		</div>
 	</div>
 <% end %>

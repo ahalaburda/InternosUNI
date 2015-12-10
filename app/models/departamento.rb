@@ -1,7 +1,8 @@
 class Departamento < ActiveRecord::Base
 	attr_accessible :interno, :nombre
 	has_many :funcionario
-
+	
+	validates_presence_of :nombre, :allow_blank => true, :message => "No puede estar en blanco"
 	validates :interno,
 		:format => {
 		with: /\A[0-9]+\z/,

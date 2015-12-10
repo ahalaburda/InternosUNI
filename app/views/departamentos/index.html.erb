@@ -34,7 +34,7 @@
         <td><%= departamento.id %></td>
         <td><%= departamento.interno %></td>
         <td>
-            <%= link_to edit_departamento_path(departamento), class: 'btn btn-warning btn-outline btn-circle', title: 'Editar', 'data-toggle' => 'tooltip', 'data-placement' => 'right' do %>
+            <%= link_to edit_departamento_path(departamento), class: 'btn btn-warning btn-outline btn-circle', title: 'Editar', remote: true,'data-toggle' => 'tooltip', 'data-placement' => 'right' do %>
                   <span class="glyphicon glyphicon-pencil"></span>
             <% end %>
             <%= link_to departamento, method: :delete, data: { confirm: 'Va eliminarlo, esta seguro?' }, class: 'btn btn-danger btn-outline btn-circle', title: 'borrar', 'data-toggle' => 'tooltip', 'data-placement' => 'right'  do %>

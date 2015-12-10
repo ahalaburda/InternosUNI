@@ -68,11 +68,11 @@ before_filter :authenticate_usuario!
   # DELETE /usuarios/1
   # DELETE /usuarios/1.json
   def destroy
+    @usuario = Usuario.find(params[:id])
     @usuario.destroy
     respond_to do |format|
       format.html { redirect_to usuarios_url }
       format.json { head :no_content }
     end
   end
-
 end
