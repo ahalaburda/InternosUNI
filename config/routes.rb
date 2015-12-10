@@ -1,4 +1,10 @@
 Internos::Application.routes.draw do
+  resources :empresas_detalles
+
+
+  resources :empresas
+
+
   devise_for :usuarios
 
   resources :funcionarios
